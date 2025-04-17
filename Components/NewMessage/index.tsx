@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { X, Paperclip, Smile, Send } from "lucide-react";
+import { X } from "lucide-react";
+import Editor from "../../apps/Editor";
+import ToolBar from "../../apps/Editor/ToolBar";
 interface EmailChip {
   email: string;
   id: string;
@@ -111,17 +113,7 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
             }`}
           />
         </div>
-
-        <div className="flex-1">
-          <textarea
-            placeholder="Write your message..."
-            className={`w-full h-full px-0 py-2 bg-transparent border-none resize-none focus:outline-none ${
-              isDarkMode
-                ? "text-white placeholder-gray-500"
-                : "text-gray-900 placeholder-gray-400"
-            }`}
-          />
-        </div>
+        <Editor isDarkMode={isDarkMode} />
       </div>
 
       <div
@@ -129,32 +121,7 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
           isDarkMode ? "border-gray-800" : "border-gray-200"
         }`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              className={`p-2 rounded-lg ${
-                isDarkMode
-                  ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              <Paperclip className="h-5 w-5" />
-            </button>
-            <button
-              className={`p-2 rounded-lg ${
-                isDarkMode
-                  ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              <Smile className="h-5 w-5" />
-            </button>
-          </div>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700">
-            <Send className="h-5 w-5" />
-            Send
-          </button>
-        </div>
+        <ToolBar isDarkMode={isDarkMode} />
       </div>
     </div>
   );
