@@ -2,8 +2,8 @@
 const theme = {
     ltr: "text-left",
     rtl: "text-right",
-    paragraph: "mb-2 text-base leading-relaxed text-gray-800 dark:text-gray-200",
-    quote: "pl-4 border-l-4 border-gray-300 text-gray-600 italic",
+    paragraph: "mb-2 text-base leading-relaxed ",
+    quote: "pl-4 border-l-4 border-gray-300 text-gray-500 italic",
     heading: {
         h1: "text-4xl font-bold my-4",
         h2: "text-3xl font-semibold my-4",
@@ -13,14 +13,15 @@ const theme = {
         h6: "text-base font-medium",
     },
     list: {
+        checklist: "relative px-[30px] mx-[12px] list-none outline-none",
+        listitemChecked: "relative px-[30px] mx-[12px] list-none line-through outline-none",
+        listitemUnchecked: "relative px-[30px] mx-[12px] list-none outline-none",
         nested: {
-            listitem: "ml-4 list-disc",
+            listitem: "list-none",
         },
-        ol: "list-decimal list-inside ml-6",
-        ul: "list-disc list-inside ml-6",
-        listitem: "mb-1 text-gray-800 dark:text-gray-200",
-        listitemChecked: "line-through text-gray-500",
-        listitemUnchecked: "",
+        ol: "max-w-md space-y-1 list-decimal list-inside",
+        ul: "max-w-md space-y-1 list-disc list-inside",
+        listitem: "mx-8", // 32px ≈ mx-8
     },
     hashtag: "text-blue-600 dark:text-blue-400 font-medium",
     image: "max-w-full rounded-lg shadow-md my-4",

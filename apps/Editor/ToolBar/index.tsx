@@ -1,12 +1,16 @@
 import { Send, Smile } from "lucide-react";
 import Align from "./Component/Align";
-
+import Element from "./Component/Element";
+import ColorBg from "./Component/ColorBg";
+import ColorText from "./Component/ColorText";
 function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Align isDarkMode={isDarkMode} />
-
+        <Element isDarkMode={isDarkMode} />
+        <ColorBg />
+        <ColorText />
         <button
           className={`p-2 rounded-lg ${
             isDarkMode

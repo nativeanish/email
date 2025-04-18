@@ -1,8 +1,10 @@
 import {
   $getRoot,
   $getSelection,
+  $isParagraphNode,
   $isRangeSelection,
   EditorState,
+  ParagraphNode,
 } from "lexical";
 import { useEffect, useState } from "react";
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
@@ -13,10 +15,15 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { ListItemNode, ListNode } from "@lexical/list";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 
 import useEditor from "../../store/useEditor";
 import theme from "./utils/theme";
 import usePragraph from "../../store/useParagraph";
+import { $isHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
+import useColor from "../../store/useColor";
 
 function onError(error: Error) {
   console.error(error);
@@ -63,38 +70,61 @@ function onChange(e: EditorState) {
       } else if (alignment === "right") {
         usePragraph.setState({ align: "right" });
       }
+
+      const element =
+        anchorNode.getKey() === "root"
+          ? anchorNode
+          : anchorNode.getTopLevelElementOrThrow();
+
+      if ($isHeadingNode(element)) {
+        const headingTag = element.getTag();
+        usePragraph.getState().setElement(headingTag);
+      }
+
+      if ($isParagraphNode(element)) {
+        const paragraphTag = element.getType();
+        if (paragraphTag === "paragraph") {
+          usePragraph.getState().setElement("p");
+        }
+      }
     }
   });
 }
-export default function Editor({ isDarkMode = false }) {
+export default function Editor() {
   const initialConfig = {
     namespace: "MyEditor",
     theme,
     onError,
+    nodes: [HeadingNode, ParagraphNode, ListNode, ListItemNode, QuoteNode],
   };
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const align = usePragraph((state) => state.align);
+  const bg = useColor((state) => state.bg);
+  const text = useColor((state) => state.text);
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="relative flex-1 w-full h-full">
         <RichTextPlugin
           contentEditable={
             <ContentEditable
-              className={`w-full h-full px-0 py-2 bg-transparent border-none resize-none focus:outline-none ${
-                isDarkMode
-                  ? "text-white placeholder-gray-500"
-                  : "text-gray-900 placeholder-gray-400"
-              }`}
+              className="w-full h-full px-0 py-2 border-none resize-none focus:outline-none"
+              style={{ backgroundColor: bg, color: text }}
             />
           }
           placeholder={
             showPlaceholder ? (
               <div
-                className={`absolute top-0 px-0 py-2 text-gray-400 pointer-events-none ${
+                className={`absolute top-0 px-0 py-2  pointer-events-none ${
                   align === "left" ? "left-0" : ""
                 } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""} ${
                   align === "right" ? "right-0" : ""
                 }`}
+                style={{
+                  color: text,
+                  backgroundColor: bg,
+                  fontSize: "16px",
+                  fontWeight: "400",
+                }}
               >
                 Write your message...
               </div>
@@ -106,6 +136,8 @@ export default function Editor({ isDarkMode = false }) {
       </div>
       <HistoryPlugin />
       <AutoFocusPlugin />
+      <ListPlugin />
+      <CheckListPlugin />
       <OnChangePlugin onChange={onChange} />
     </LexicalComposer>
   );
