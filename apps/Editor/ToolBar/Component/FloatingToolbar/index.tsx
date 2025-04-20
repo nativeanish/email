@@ -1,7 +1,11 @@
-import { $getSelection, $isRangeSelection, TextFormatType } from "lexical";
-import { useEffect, useState } from "react";
+import {
+  $getSelection,
+  $isRangeSelection,
+  TextFormatType,
+  $isTextNode,
+} from "lexical";
+import { useEffect, useState, useRef } from "react";
 import { useFloatingToolbarPosition } from "../../../../../hooks/useFloatingToolbarPosition";
-
 import {
   Bold,
   CaseLower,
@@ -16,8 +20,10 @@ import {
   Superscript,
   Underline,
   WandSparkles,
+  X,
 } from "lucide-react";
 import useEditor from "../../../../../store/useEditor";
+import useColor from "../../../../../store/useColor";
 
 const formats = [
   "bold",
@@ -49,6 +55,14 @@ const tools = [
   { name: "link", icon: <Link className="h-4 w-4" /> },
 ];
 
+const highlightColors = [
+  "#ffeb3b", // Yellow
+  "#ff9800", // Orange
+  "#4caf50", // Green
+  "#03a9f4", // Blue
+  "#e91e63", // Pink
+];
+
 export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
   const editor = useEditor((state) => state.editor);
   const position = useFloatingToolbarPosition();
@@ -56,6 +70,10 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
     new Set()
   );
   const [toolbarWidth, setToolbarWidth] = useState(0);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+  const { setHighlightColor } = useColor();
 
   useEffect(() => {
     if (!editor) return;
@@ -69,13 +87,39 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
               active.add(format);
             }
           });
+
+          // Check if selection has highlight
+          const nodes = selection.getNodes();
+          const hasHighlight = nodes.some((node) => {
+            if ($isTextNode(node)) {
+              const style = node.getStyle();
+              return style && style.includes("background-color");
+            }
+            return false;
+          });
+          setIsHighlighted(hasHighlight);
           setActiveFormats(active);
         } else {
           setActiveFormats(new Set());
+          setIsHighlighted(false);
         }
       });
     });
   }, [editor]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        colorPickerRef.current &&
+        !colorPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowColorPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const applyFormat = (format: TextFormatType) => {
     if (!editor) return;
@@ -87,8 +131,70 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
     });
   };
 
+  const removeHighlight = () => {
+    if (!editor) return;
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const anchor = selection.anchor;
+        const focus = selection.focus;
+        const isBackward = selection.isBackward();
+        const startOffset = isBackward ? focus.offset : anchor.offset;
+        const endOffset = isBackward ? anchor.offset : focus.offset;
+
+        selection.getNodes().forEach((node) => {
+          if ($isTextNode(node)) {
+            const textContent = node.getTextContent();
+            const nodeSize = textContent.length;
+
+            // Only remove highlight from the selected portion
+            if (startOffset > 0 || endOffset < nodeSize) {
+              const originalNode = node.splitText(startOffset, endOffset)[1];
+              originalNode.setStyle("");
+            } else {
+              node.setStyle("");
+            }
+          }
+        });
+      }
+    });
+    setShowColorPicker(false);
+    setIsHighlighted(false);
+  };
+
+  const applyHighlight = (color: string) => {
+    if (!editor) return;
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        const anchor = selection.anchor;
+        const focus = selection.focus;
+        const isBackward = selection.isBackward();
+        const startOffset = isBackward ? focus.offset : anchor.offset;
+        const endOffset = isBackward ? anchor.offset : focus.offset;
+
+        selection.getNodes().forEach((node) => {
+          if ($isTextNode(node)) {
+            const textContent = node.getTextContent();
+            const nodeSize = textContent.length;
+
+            // Only highlight the selected portion
+            if (startOffset > 0 || endOffset < nodeSize) {
+              const [, selected] = node.splitText(startOffset, endOffset);
+              selected.setStyle(`background-color: ${color};`);
+            } else {
+              node.setStyle(`background-color: ${color};`);
+            }
+          }
+        });
+      }
+    });
+    setIsHighlighted(true);
+  };
+
   const run = (name: (typeof tools)[number]["name"]) => {
     if (name === "highlight") {
+      setShowColorPicker(!showColorPicker);
       return;
     }
     if (formats.includes(name as TextFormatType)) {
@@ -108,14 +214,9 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
 
   const activeBg = isDarkMode ? "bg-[#333]" : "bg-[#e5e5e5]";
 
-  // Calculate the maximum allowed position
-  const maxLeft = window.innerWidth - toolbarWidth - 16; // 16px padding from the right edge
-  const minLeft = 16; // 16px padding from the left edge
-
-  // Calculate the initial position
+  const maxLeft = window.innerWidth - toolbarWidth - 16;
+  const minLeft = 16;
   let left = position.left + position.width / 2;
-
-  // Clamp the position to prevent overflow
   left = Math.min(
     Math.max(left, minLeft + toolbarWidth / 2),
     maxLeft + toolbarWidth / 2
@@ -152,6 +253,40 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
           );
         })}
       </div>
+
+      {showColorPicker && (
+        <div
+          ref={colorPickerRef}
+          className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-2 p-2 rounded-lg shadow-lg ${baseTheme}`}
+        >
+          <div className="flex gap-2 items-center">
+            {highlightColors.map((color) => (
+              <button
+                key={color}
+                onClick={() => {
+                  setHighlightColor(color);
+                  applyHighlight(color);
+                  setShowColorPicker(false);
+                }}
+                className="w-6 h-6 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+                style={{ backgroundColor: color }}
+                title="Select highlight color"
+              />
+            ))}
+            {isHighlighted && (
+              <button
+                onClick={removeHighlight}
+                className={`p-1 rounded-full hover:scale-110 transition-transform ${
+                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                }`}
+                title="Remove highlight"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

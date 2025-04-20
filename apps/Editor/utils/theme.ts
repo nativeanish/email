@@ -1,4 +1,3 @@
-
 const theme = {
     ltr: "text-left",
     rtl: "text-right",
@@ -21,7 +20,7 @@ const theme = {
         },
         ol: "max-w-md space-y-1 list-decimal list-inside",
         ul: "max-w-md space-y-1 list-disc list-inside",
-        listitem: "mx-8", // 32px ≈ mx-8
+        listitem: "mx-8",
     },
     hashtag: "text-blue-600 dark:text-blue-400 font-medium",
     image: "max-w-full rounded-lg shadow-md my-4",
@@ -38,6 +37,7 @@ const theme = {
         uppercase: "uppercase",
         lowercase: "lowercase",
         capitalize: "capitalize",
+        highlight: "bg-yellow-200",
     },
     code: "bg-gray-100 dark:bg-gray-800 text-sm p-2 rounded font-mono overflow-x-auto",
     codeHighlight: {
@@ -73,4 +73,5 @@ const theme = {
         variable: "text-orange-600",
     },
 };
+
 export default theme;
