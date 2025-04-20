@@ -55,6 +55,7 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
   const [activeFormats, setActiveFormats] = useState<Set<TextFormatType>>(
     new Set()
   );
+  const [toolbarWidth, setToolbarWidth] = useState(0);
 
   useEffect(() => {
     if (!editor) return;
@@ -97,12 +98,6 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
 
   if (!position) return null;
 
-  const clampedLeft = Math.min(
-    Math.max(position.left + position.width / 2, 8),
-    window.innerWidth - 8
-  );
-  const clampedTop = Math.max(position.top - 48, 8);
-
   const baseTheme = isDarkMode
     ? "bg-[#1e1e1e] text-white border-[#3a3a3a]"
     : "bg-white text-black border-[#ccc]";
@@ -113,13 +108,31 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
 
   const activeBg = isDarkMode ? "bg-[#333]" : "bg-[#e5e5e5]";
 
+  // Calculate the maximum allowed position
+  const maxLeft = window.innerWidth - toolbarWidth - 16; // 16px padding from the right edge
+  const minLeft = 16; // 16px padding from the left edge
+
+  // Calculate the initial position
+  let left = position.left + position.width / 2;
+
+  // Clamp the position to prevent overflow
+  left = Math.min(
+    Math.max(left, minLeft + toolbarWidth / 2),
+    maxLeft + toolbarWidth / 2
+  );
+
   return (
     <div
-      className={`absolute z-50 border rounded-full px-2 py-1 shadow-lg backdrop-blur ${baseTheme}`}
+      className={`fixed z-50 border rounded-full px-2 py-1 shadow-lg backdrop-blur ${baseTheme}`}
       style={{
-        top: clampedTop,
-        left: clampedLeft,
+        top: Math.max(position.top - 48, 8),
+        left: `${left}px`,
         transform: "translateX(-50%)",
+      }}
+      ref={(el) => {
+        if (el && el.offsetWidth !== toolbarWidth) {
+          setToolbarWidth(el.offsetWidth);
+        }
       }}
     >
       <div className="flex items-center space-x-1">
