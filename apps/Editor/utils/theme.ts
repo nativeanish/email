@@ -5,11 +5,11 @@ const theme = {
     paragraph: "mb-2 text-base leading-relaxed ",
     quote: "pl-4 border-l-4 border-gray-300 text-gray-500 italic",
     heading: {
-        h1: "text-4xl font-bold my-4",
-        h2: "text-3xl font-semibold my-4",
-        h3: "text-2xl font-semibold my-3",
-        h4: "text-xl font-medium my-2",
-        h5: "text-lg font-medium my-1",
+        h1: "text-4xl  my-4",
+        h2: "text-3xl  my-4",
+        h3: "text-2xl  my-3",
+        h4: "text-xl  my-2",
+        h5: "text-lg  my-1",
         h6: "text-base font-medium",
     },
     list: {
@@ -35,6 +35,9 @@ const theme = {
         superscript: "align-super text-xs",
         underline: "underline",
         underlineStrikethrough: "underline line-through",
+        uppercase: "uppercase",
+        lowercase: "lowercase",
+        capitalize: "capitalize",
     },
     code: "bg-gray-100 dark:bg-gray-800 text-sm p-2 rounded font-mono overflow-x-auto",
     codeHighlight: {

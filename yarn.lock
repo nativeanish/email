@@ -483,7 +483,7 @@
     "@lexical/utils" "0.30.0"
     lexical "0.30.0"
 
-"@lexical/html@0.30.0":
+"@lexical/html@0.30.0", "@lexical/html@^0.30.0":
   version "0.30.0"
   resolved "https://registry.yarnpkg.com/@lexical/html/-/html-0.30.0.tgz#c01cbd2a2991b1c0bd43daab20a87654efac50dc"
   integrity sha512-GdegWO6RjJ7eE+yD3Z0X/OpT88SZjOs3DyQ0rgrZy3z7RPaFCbEEcq0M/NssJbKAB1XOFUsUFrnS7kZs1vJzGg==
@@ -2090,6 +2090,11 @@ supports-color@^7.1.0:
   integrity sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   dependencies:
     has-flag "^4.0.0"
+
+tailwind-merge@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-3.2.0.tgz#bedcf6a67a8c982da5913afcba9c854f35abb857"
+  integrity sha512-FQT/OVqCD+7edmmJpsgCsY820RTD5AkBryuG5IUqR5YQZSdj5xlH5nLgH7YPths7WsLPSpSBNneJdM8aS8aeFA==
 
 tailwindcss@4.1.3, tailwindcss@^4.1.3:
   version "4.1.3"

@@ -24,6 +24,7 @@ import theme from "./utils/theme";
 import usePragraph from "../../store/useParagraph";
 import { $isHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
 import useColor from "../../store/useColor";
+import { FloatingToolbar } from "./ToolBar/Component/FloatingToolbar";
 
 function onError(error: Error) {
   console.error(error);
@@ -90,7 +91,7 @@ function onChange(e: EditorState) {
     }
   });
 }
-export default function Editor() {
+export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
   const initialConfig = {
     namespace: "MyEditor",
     theme,
@@ -138,6 +139,7 @@ export default function Editor() {
       <AutoFocusPlugin />
       <ListPlugin />
       <CheckListPlugin />
+      <FloatingToolbar isDarkMode={isDarkMode} />
       <OnChangePlugin onChange={onChange} />
     </LexicalComposer>
   );

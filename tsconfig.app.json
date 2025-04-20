@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "store", "Components", "Pages", "apps"]
+  "include": ["src", "store", "Components", "Pages", "apps", "hooks"]
 }
