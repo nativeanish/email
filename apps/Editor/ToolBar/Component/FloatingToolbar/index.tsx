@@ -52,7 +52,6 @@ const tools = [
 export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
   const editor = useEditor((state) => state.editor);
   const position = useFloatingToolbarPosition();
-  const [highlight, showHighlight] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Set<TextFormatType>>(
     new Set()
   );
@@ -89,7 +88,6 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
 
   const run = (name: (typeof tools)[number]["name"]) => {
     if (name === "highlight") {
-      showHighlight((prev) => !prev);
       return;
     }
     if (formats.includes(name as TextFormatType)) {
@@ -141,35 +139,6 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
           );
         })}
       </div>
-      {highlight && (
-        <div className="absolute top-full left-1/2 mt-2 -translate-x-1/2 z-50">
-          <div
-            className={`rounded-lg p-2 shadow-xl border ${
-              isDarkMode
-                ? "bg-[#1e1e1e] border-[#3a3a3a]"
-                : "bg-white border-[#ccc]"
-            }`}
-          >
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="color"
-                className="w-8 h-8 rounded-full border-none p-0 bg-transparent cursor-pointer"
-                onChange={(e) => {
-                  const color = e.target.value;
-                  // editor.update(() => {
-                  //   const selection = $getSelection();
-                  //   if ($isRangeSelection(selection)) {
-                  //     selection.formatText("highlight");
-                  //     selection.toggleStyle("backgroundColor", color);
-                  //   }
-                  // });
-                  // showHighlight(false); // Close after selection
-                }}
-              />
-            </label>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

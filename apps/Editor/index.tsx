@@ -18,6 +18,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
+import { LinkNode } from "@lexical/link";
 
 import useEditor from "../../store/useEditor";
 import theme from "./utils/theme";
@@ -96,7 +97,14 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
     namespace: "MyEditor",
     theme,
     onError,
-    nodes: [HeadingNode, ParagraphNode, ListNode, ListItemNode, QuoteNode],
+    nodes: [
+      HeadingNode,
+      ParagraphNode,
+      ListNode,
+      ListItemNode,
+      QuoteNode,
+      LinkNode,
+    ],
   };
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const align = usePragraph((state) => state.align);
