@@ -610,7 +610,7 @@
   dependencies:
     lexical "0.30.0"
 
-"@lexical/utils@0.30.0":
+"@lexical/utils@0.30.0", "@lexical/utils@^0.30.0":
   version "0.30.0"
   resolved "https://registry.yarnpkg.com/@lexical/utils/-/utils-0.30.0.tgz#262dda64c3cc1c0e298088d34ba48a7144dd65be"
   integrity sha512-VJlAUhupCZmnbYYX3zMWovd4viu2guR01sAqKGbbOMbP+4rlaymixFbinvNPaRKDBloOARi+fpiveQFxnyr/Ew==
