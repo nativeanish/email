@@ -1,15 +1,13 @@
-import { Menu, Plus, Sun, Moon } from "lucide-react";
+import { Menu, Plus, Sun, Moon, X } from "lucide-react";
 import useTheme from "../../store/useTheme";
 import useSideBar from "../../store/useSideBar";
+import useMessage from "../../store/useMessage";
 
-interface HeaderProps {
-  onNewMessage: () => void;
-}
-
-export function Header({ onNewMessage }: HeaderProps) {
+export function Header() {
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const toggleTheme = useTheme((state) => state.setTheme);
   const setIsSidebarOpen = useSideBar((state) => state.change);
+  const { show, setShow } = useMessage();
   return (
     <header
       className={`px-4 py-4 border-b ${
@@ -48,11 +46,22 @@ export function Header({ onNewMessage }: HeaderProps) {
             )}
           </button>
           <button
-            onClick={onNewMessage}
+            onClick={() => {
+              setShow(!show);
+            }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
           >
-            <Plus className="h-5 w-5" />
-            <span className="hidden sm:inline">New Message</span>
+            {show ? (
+              <>
+                <X className="h-5 w-5" />
+                <span className="hidden sm:inline">Close</span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-5 w-5" />
+                <span className="hidden sm:inline">New Message</span>
+              </>
+            )}
           </button>
         </div>
       </div>
