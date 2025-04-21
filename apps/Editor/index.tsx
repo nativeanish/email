@@ -18,7 +18,8 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
-import { LinkNode } from "@lexical/link";
+import { AutoLinkNode, LinkNode } from "@lexical/link";
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 
 import useEditor from "../../store/useEditor";
 import theme from "./utils/theme";
@@ -26,6 +27,7 @@ import usePragraph from "../../store/useParagraph";
 import { $isHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
 import useColor from "../../store/useColor";
 import { FloatingToolbar } from "./ToolBar/Component/FloatingToolbar";
+import LexicalAutoLinkPlugin from "./Plugin/AutoLinkPlugin";
 
 function onError(error: Error) {
   console.error(error);
@@ -104,6 +106,7 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
       ListItemNode,
       QuoteNode,
       LinkNode,
+      AutoLinkNode,
     ],
   };
   const [showPlaceholder, setShowPlaceholder] = useState(true);
@@ -146,7 +149,9 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
       <HistoryPlugin />
       <AutoFocusPlugin />
       <ListPlugin />
+      <LinkPlugin />
       <CheckListPlugin />
+      <LexicalAutoLinkPlugin />
       <FloatingToolbar isDarkMode={isDarkMode} />
       <OnChangePlugin onChange={onChange} />
     </LexicalComposer>

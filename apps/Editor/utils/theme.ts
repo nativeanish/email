@@ -24,7 +24,7 @@ const theme = {
     },
     hashtag: "text-blue-600 dark:text-blue-400 font-medium",
     image: "max-w-full rounded-lg shadow-md my-4",
-    link: "text-blue-600 hover:underline dark:text-blue-400",
+    link: "text-blue-600 hover:text-blue-800 underline cursor-pointer dark:text-blue-400 dark:hover:text-blue-300",
     text: {
         bold: "font-bold",
         code: "bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono",

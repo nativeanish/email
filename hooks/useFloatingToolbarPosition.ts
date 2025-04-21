@@ -7,6 +7,7 @@ import {
 import useEditor from '../store/useEditor';
 import { HeadingNode, } from '@lexical/rich-text';
 import { ListNode } from '@lexical/list';
+import { LinkNode } from '@lexical/link';
 
 export function useFloatingToolbarPosition() {
     const editor = useEditor((state) => state.editor);
@@ -34,7 +35,8 @@ export function useFloatingToolbarPosition() {
                 const isValidParent =
                     parent instanceof ParagraphNode ||
                     parent instanceof HeadingNode ||
-                    parent instanceof ListNode;
+                    parent instanceof ListNode ||
+                    parent instanceof LinkNode
 
                 if (!isValidParent) {
                     setPosition(null);

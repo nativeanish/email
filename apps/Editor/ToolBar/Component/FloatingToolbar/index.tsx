@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import useEditor from "../../../../../store/useEditor";
 import useColor from "../../../../../store/useColor";
+import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 
 const formats = [
   "bold",
@@ -195,6 +196,22 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
   const run = (name: (typeof tools)[number]["name"]) => {
     if (name === "highlight") {
       setShowColorPicker(!showColorPicker);
+      return;
+    }
+    if (name === "link") {
+      if (!editor) return;
+      editor.getEditorState().read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const selectedNode = selection.getNodes().find($isLinkNode);
+          const currentLink = selectedNode?.getURL?.() || "";
+
+          const url = window.prompt("Enter a URL:", currentLink);
+          if (url === null) return; // user cancelled
+
+          editor.dispatchCommand(TOGGLE_LINK_COMMAND, url === "" ? null : url);
+        }
+      });
       return;
     }
     if (formats.includes(name as TextFormatType)) {
