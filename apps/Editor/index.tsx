@@ -56,7 +56,7 @@ function PlaceholderVisibilityPlugin({
         setShowPlaceholder(isEmpty);
       });
     });
-  }, [editor]);
+  }, [editor, setShowPlaceholder]);
 
   return null;
 }
@@ -126,11 +126,9 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
           placeholder={
             showPlaceholder ? (
               <div
-                className={`absolute top-0 px-0 py-2  pointer-events-none ${
-                  align === "left" ? "left-0" : ""
-                } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""} ${
-                  align === "right" ? "right-0" : ""
-                }`}
+                className={`absolute top-0 px-0 py-2  pointer-events-none ${align === "left" ? "left-0" : ""
+                  } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""} ${align === "right" ? "right-0" : ""
+                  }`}
                 style={{
                   color: text,
                   backgroundColor: bg,
