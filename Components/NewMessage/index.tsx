@@ -46,28 +46,25 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   return (
     <div className="h-full flex flex-col">
       <h2
-        className={`text-xl md:text-2xl font-semibold mb-6 ${
-          isDarkMode ? "text-white" : "text-gray-900"
-        }`}
+        className={`text-xl md:text-2xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"
+          }`}
       >
         New Message
       </h2>
 
       <div className="flex-1 flex flex-col">
         <div
-          className={`border-b ${
-            isDarkMode ? "border-gray-800" : "border-gray-200"
-          } mb-4`}
+          className={`border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"
+            } mb-4`}
         >
           <div className="flex flex-wrap items-center gap-2 min-h-[40px]">
             {emailChips.map((chip) => (
               <div
                 key={chip.id}
-                className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${
-                  isDarkMode
-                    ? "bg-gray-800 text-white"
-                    : "bg-gray-100 text-gray-900"
-                }`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${isDarkMode
+                  ? "bg-gray-800 text-white"
+                  : "bg-gray-100 text-gray-900"
+                  }`}
               >
                 <span>{chip.email}</span>
                 <button
@@ -84,11 +81,10 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
               value={emailInput}
               onChange={handleEmailInputChange}
               onKeyDown={handleEmailInputKeyDown}
-              className={`flex-1 px-0 py-2 bg-transparent border-none focus:outline-none ${
-                isDarkMode
-                  ? "text-white placeholder-gray-500"
-                  : "text-gray-900 placeholder-gray-400"
-              } ${!isEmailValid ? "text-red-500" : ""}`}
+              className={`flex-1 px-0 py-2 border-none focus:outline-none ${isDarkMode
+                ? "text-white placeholder-gray-500"
+                : "text-black placeholder-gray-400"
+                } ${!isEmailValid ? "text-red-500" : ""}`}
             />
           </div>
           {!isEmailValid && (
@@ -99,27 +95,24 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
         </div>
 
         <div
-          className={`border-b ${
-            isDarkMode ? "border-gray-800" : "border-gray-200"
-          } mb-4`}
+          className={`border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"
+            } mb-4`}
         >
           <input
             type="text"
             placeholder="Subject"
-            className={`w-full px-0 py-2 bg-transparent border-none focus:outline-none ${
-              isDarkMode
-                ? "text-white placeholder-gray-500"
-                : "text-gray-900 placeholder-gray-400"
-            }`}
+            className={`w-full px-0 py-2 bg-transparent border-none focus:outline-none ${isDarkMode
+              ? "text-white placeholder-gray-500"
+              : "text-gray-900 placeholder-gray-400"
+              }`}
           />
         </div>
         <Editor isDarkMode={isDarkMode} />
       </div>
 
       <div
-        className={`mt-4 pt-4 border-t ${
-          isDarkMode ? "border-gray-800" : "border-gray-200"
-        }`}
+        className={`mt-4 pt-4 border-t ${isDarkMode ? "border-gray-800" : "border-gray-200"
+          }`}
       >
         <ToolBar isDarkMode={isDarkMode} />
       </div>

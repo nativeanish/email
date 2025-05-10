@@ -20,12 +20,11 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
-
+import SlashCommandPlugin from "./Plugin/SlashCommandPlugin";
 import useEditor from "../../store/useEditor";
 import theme from "./utils/theme";
 import usePragraph from "../../store/useParagraph";
 import { $isHeadingNode, HeadingNode, QuoteNode } from "@lexical/rich-text";
-import useColor from "../../store/useColor";
 import { FloatingToolbar } from "./ToolBar/Component/FloatingToolbar";
 import LexicalAutoLinkPlugin from "./Plugin/AutoLinkPlugin";
 
@@ -111,16 +110,15 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
   };
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const align = usePragraph((state) => state.align);
-  const bg = useColor((state) => state.bg);
-  const text = useColor((state) => state.text);
+
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="relative flex-1 w-full h-full">
         <RichTextPlugin
           contentEditable={
             <ContentEditable
-              className="w-full h-full px-0 py-2 border-none resize-none focus:outline-none"
-              style={{ backgroundColor: bg, color: text }}
+              // className="w-full h-full px-0 py-2 border-none resize-none focus:outline-none"
+              className={`w-full h-full px-0 py-2 border-none resize-none focus:outline-none ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}
             />
           }
           placeholder={
@@ -128,15 +126,13 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
               <div
                 className={`absolute top-0 px-0 py-2  pointer-events-none ${align === "left" ? "left-0" : ""
                   } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""} ${align === "right" ? "right-0" : ""
-                  }`}
+                  } ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}
                 style={{
-                  color: text,
-                  backgroundColor: bg,
                   fontSize: "16px",
                   fontWeight: "400",
                 }}
               >
-                Write your message...
+                Write your message ... or start with /
               </div>
             ) : null
           }
@@ -144,6 +140,7 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
         />
         <PlaceholderVisibilityPlugin setShowPlaceholder={setShowPlaceholder} />
       </div>
+      <SlashCommandPlugin />
       <HistoryPlugin />
       <AutoFocusPlugin />
       <ListPlugin />

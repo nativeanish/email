@@ -4,7 +4,7 @@ import {
   TextFormatType,
   $isTextNode,
 } from "lexical";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useFloatingToolbarPosition } from "../../../../../hooks/useFloatingToolbarPosition";
 import {
   Bold,
@@ -21,11 +21,12 @@ import {
   Underline,
   WandSparkles,
   X,
+  PaintBucket,
 } from "lucide-react";
 import useEditor from "../../../../../store/useEditor";
 import useColor from "../../../../../store/useColor";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
-
+import { $patchStyleText } from "@lexical/selection"
 const formats = [
   "bold",
   "underline",
@@ -52,6 +53,7 @@ const tools = [
   { name: "lowercase", icon: <CaseLower className="h-4 w-4" /> },
   { name: "capitalize", icon: <CaseSensitive className="h-4 w-4" /> },
   { name: "highlight", icon: <Highlighter className="h-4 w-4" /> },
+  { name: "TextColor", icon: <PaintBucket className="h-4 w-4" /> },
   { name: "code", icon: <Code className="h-4 w-4" /> },
   { name: "link", icon: <Link className="h-4 w-4" /> },
 ];
@@ -75,6 +77,19 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
   const [isHighlighted, setIsHighlighted] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const { setHighlightColor } = useColor();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const handleClick = () => {
+    inputRef.current?.click();
+  }
+  const onFontColor = useCallback((color: string) => {
+    if (!editor) return;
+    editor.update(() => {
+      const selection = $getSelection();
+      if (selection !== null) {
+        $patchStyleText(selection, { color: color });
+      }
+    })
+  }, [editor]);
 
   useEffect(() => {
     if (!editor) return;
@@ -217,6 +232,10 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
     if (formats.includes(name as TextFormatType)) {
       applyFormat(name as TextFormatType);
     }
+
+    if (name === "TextColor") {
+      handleClick();
+    }
   };
 
   if (!position) return null;
@@ -260,9 +279,8 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
             <button
               key={tool.name}
               onClick={() => run(tool.name)}
-              className={`p-2 rounded-full transition-all duration-150 ease-in-out flex items-center justify-center hover:scale-105 ${buttonBase} ${
-                isActive ? activeBg : ""
-              }`}
+              className={`p-2 rounded-full transition-all duration-150 ease-in-out flex items-center justify-center hover:scale-105 ${buttonBase} ${isActive ? activeBg : ""
+                }`}
               title={tool.name}
             >
               {tool.icon}
@@ -270,7 +288,13 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
           );
         })}
       </div>
-
+      <input
+        type="color"
+        value="#fffff"
+        className="hidden"
+        ref={inputRef}
+        onChange={(e) => onFontColor(e.target.value)}
+      />
       {showColorPicker && (
         <div
           ref={colorPickerRef}
@@ -293,9 +317,8 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
             {isHighlighted && (
               <button
                 onClick={removeHighlight}
-                className={`p-1 rounded-full hover:scale-110 transition-transform ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
+                className={`p-1 rounded-full hover:scale-110 transition-transform ${isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                  }`}
                 title="Remove highlight"
               >
                 <X className="h-4 w-4" />
