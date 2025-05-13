@@ -22,6 +22,8 @@ import {
   WandSparkles,
   X,
   PaintBucket,
+  Plus,
+  Minus,
 } from "lucide-react";
 import useEditor from "../../../../../store/useEditor";
 import useColor from "../../../../../store/useColor";
@@ -54,6 +56,8 @@ const tools = [
   { name: "capitalize", icon: <CaseSensitive className="h-4 w-4" /> },
   { name: "highlight", icon: <Highlighter className="h-4 w-4" /> },
   { name: "TextColor", icon: <PaintBucket className="h-4 w-4" /> },
+  { name: "Increase", icon: <Plus className="h-4 w-4" /> },
+  { name: "Decrease", icon: <Minus className="h-4 w-4" /> },
   { name: "code", icon: <Code className="h-4 w-4" /> },
   { name: "link", icon: <Link className="h-4 w-4" /> },
 ];
@@ -236,6 +240,22 @@ export function FloatingToolbar({ isDarkMode }: { isDarkMode: boolean }) {
     if (name === "TextColor") {
       handleClick();
     }
+
+    if (name === "Increase" || name === "Decrease") {
+      if (!editor) return;
+      editor.update(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection((selection))) {
+          const nodes = selection.getNodes()[0];
+          const element = editor.getElementByKey(nodes.getKey());
+          if (element) {
+            const computedStyle = Number(window.getComputedStyle(element).fontSize.split("px")[0]);
+            $patchStyleText(selection, { 'font-size': `${name === "Increase" ? `${computedStyle + 1}px` : name === "Decrease" ? `${computedStyle - 1}px` : `${computedStyle}px`}` })
+          }
+        }
+      })
+    }
+
   };
 
   if (!position) return null;
