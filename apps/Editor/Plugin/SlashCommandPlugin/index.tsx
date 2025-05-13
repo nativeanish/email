@@ -90,11 +90,31 @@ export default function SlashCommandPlugin(): JSX.Element {
           const range = domSelection.getRangeAt(0)
           const rect = range.getBoundingClientRect()
 
-          // Position the menu below the cursor
+          const menuHeight = 300
+          const menuWidth = 300
+          const margin = 10
+
+          let top = rect.bottom + margin
+          let left = rect.left
+
+          // Flip vertically if there's not enough space at bottom
+          if (top + menuHeight > window.innerHeight) {
+            top = rect.top - menuHeight - margin
+          }
+
+          // Shift horizontally if overflowing right
+          if (left + menuWidth > window.innerWidth) {
+            left = window.innerWidth - menuWidth - margin
+          }
+
+          // Clamp top if flipped too high
+          if (top < 0) top = margin
+
           setPosition({
-            top: rect.bottom + window.scrollY,
-            left: rect.left + window.scrollX,
+            top: top + window.scrollY,
+            left: left + window.scrollX,
           })
+
           setSlashCommandText("")
         }
       } else if (slashCommandText !== null) {
