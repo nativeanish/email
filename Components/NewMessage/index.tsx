@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { X } from "lucide-react";
 import Editor from "../../apps/Editor";
 import ToolBar from "../../apps/Editor/ToolBar";
+import useFileStore from "../../store/useFileStore";
 interface EmailChip {
   email: string;
   id: string;
@@ -10,6 +11,13 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   const [emailInput, setEmailInput] = useState("");
   const [emailChips, setEmailChips] = useState<EmailChip[]>([]);
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const { clearSelectedFiles } = useFileStore()
+
+  const clearSF = useCallback(() => clearSelectedFiles(), [clearSelectedFiles])
+
+  useEffect(() => {
+    clearSF()
+  }, [clearSF])
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -107,7 +115,9 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
               }`}
           />
         </div>
-        <Editor isDarkMode={isDarkMode} />
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <Editor isDarkMode={isDarkMode} />
+        </div>
       </div>
 
       <div

@@ -59,6 +59,7 @@ function PlaceholderVisibilityPlugin({
 
   return null;
 }
+
 function onChange(e: EditorState) {
   e.read(() => {
     const selection = $getSelection();
@@ -93,6 +94,7 @@ function onChange(e: EditorState) {
     }
   });
 }
+
 export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
   const initialConfig = {
     namespace: "MyEditor",
@@ -113,31 +115,41 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="relative flex-1 w-full h-full">
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable
-              // className="w-full h-full px-0 py-2 border-none resize-none focus:outline-none"
-              className={`w-full h-full px-0 py-2 border-none resize-none focus:outline-none ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}
+      <div className="relative flex flex-col flex-1 w-full h-full">
+        <div className="flex-1 w-full relative">
+          <div className="absolute inset-0 overflow-y-auto">
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable
+                  className={`w-full min-h-full h-full px-0 py-2 border-none focus:outline-none ${
+                    isDarkMode ? "bg-black text-white" : "bg-white text-black"
+                  }`}
+                  style={{ resize: "none" }}
+                />
+              }
+              placeholder={
+                showPlaceholder ? (
+                  <div
+                    className={`absolute top-0 px-0 py-2 pointer-events-none ${
+                      align === "left" ? "left-0" : ""
+                    } ${
+                      align === "center" ? "left-1/2 -translate-x-1/2" : ""
+                    } ${align === "right" ? "right-0" : ""} ${
+                      isDarkMode ? "bg-black text-white" : "bg-white text-black"
+                    }`}
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "400",
+                    }}
+                  >
+                    Write your message ... or start with /
+                  </div>
+                ) : null
+              }
+              ErrorBoundary={LexicalErrorBoundary}
             />
-          }
-          placeholder={
-            showPlaceholder ? (
-              <div
-                className={`absolute top-0 px-0 py-2  pointer-events-none ${align === "left" ? "left-0" : ""
-                  } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""} ${align === "right" ? "right-0" : ""
-                  } ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "400",
-                }}
-              >
-                Write your message ... or start with /
-              </div>
-            ) : null
-          }
-          ErrorBoundary={LexicalErrorBoundary}
-        />
+          </div>
+        </div>
         <PlaceholderVisibilityPlugin setShowPlaceholder={setShowPlaceholder} />
       </div>
       <SlashCommandPlugin />

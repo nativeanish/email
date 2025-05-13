@@ -69,32 +69,32 @@ export function EmailContent({
             <div className="flex items-center gap-2">
               <button
                 className={`p-2 rounded-lg ${isDarkMode
-                    ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
               >
                 <Reply className="h-5 w-5" />
               </button>
               <button
                 className={`p-2 rounded-lg ${isDarkMode
-                    ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
               >
                 <Download className="h-5 w-5" />
               </button>
               <button
                 className={`p-2 rounded-lg ${isDarkMode
-                    ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
               >
                 <Trash2 className="h-5 w-5" />
               </button>
               <button
                 className={`p-2 rounded-lg ${isDarkMode
-                    ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                  ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
               >
                 <MoreVertical className="h-5 w-5" />
@@ -102,10 +102,7 @@ export function EmailContent({
             </div>
           </div>
 
-          <div
-            className={`flex-1 prose ${isDarkMode ? "prose-invert" : ""
-              } max-w-none`}
-          >
+          <div className={`flex-1 prose ${isDarkMode ? "prose-invert" : ""} max-w-none`}>
             <p>Hi John,</p>
             <p>
               I hope this message finds you well! I'm reaching out to explore a
@@ -148,16 +145,16 @@ export function EmailContent({
           >
             <div
               className={`rounded-lg border ${isDarkMode
-                  ? "bg-black border-gray-800"
-                  : "bg-white border-gray-200"
+                ? "bg-black border-gray-800"
+                : "bg-white border-gray-200"
                 }`}
             >
               <div className="p-4">
                 <textarea
                   placeholder="Write your reply..."
-                  className={`w-full h-32 resize-none focus:outline-none bg-transparent ${isDarkMode
-                      ? "text-white placeholder-gray-500"
-                      : "text-gray-900 placeholder-gray-400"
+                  className={`w-full h-32 resize-none focus:outline-none bg-transparent reply-textarea ${isDarkMode
+                    ? "text-white placeholder-gray-500"
+                    : "text-gray-900 placeholder-gray-400"
                     }`}
                 ></textarea>
               </div>
@@ -168,16 +165,16 @@ export function EmailContent({
                 <div className="flex items-center gap-2">
                   <button
                     className={`p-2 rounded-lg ${isDarkMode
-                        ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                       }`}
                   >
                     <Paperclip className="h-5 w-5" />
                   </button>
                   <button
                     className={`p-2 rounded-lg ${isDarkMode
-                        ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      ? "text-gray-400 hover:text-gray-300 hover:bg-gray-800"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                       }`}
                   >
                     <Smile className="h-5 w-5" />
