@@ -1,5 +1,7 @@
-function index() {
-  return <div>index</div>;
+import ConnectButton from "../../Components/ConnectButton";
+function Index() {
+  return <div>
+    <ConnectButton />
+    <h1>Hello, World</h1></div>
 }
-
-export default index;
+export default Index;
