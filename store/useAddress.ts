@@ -1,8 +1,9 @@
 import { create } from "zustand"
 
+export type WalletType = "Metamask" | "Wander" | "Arweave.app"
 interface State {
-  walletType: "Metamask" | "Wander" | "Arweave.app" | null
-  setType(e: "Metamask" | "Wander" | "Arweave.app" | null): void
+  walletType: WalletType | null
+  setType(e: WalletType | null): void
   address: string | null
   setAddress(e: string | null): void
 }

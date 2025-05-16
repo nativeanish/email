@@ -1,4 +1,5 @@
 import useAddress from "../store/useAddress";
+import wallet from "./arweave";
 
 export const wander = async () => {
   if (window.arweaveWallet) {
@@ -79,6 +80,12 @@ export const disconnect = async () => {
     useAddress.getState().setAddress(null);
     alert("Disconnected")
   }
+
+  if (walletType === "Arweave.app") {
+    await wallet.disconnect()
+    useAddress.getState().setType(null);
+    useAddress.getState().setAddress(null);
+  }
 }
 
 export const metamask = async () => {
@@ -96,3 +103,35 @@ export const metamask = async () => {
   }
 
 }
+
+export const arweave = async () => {
+  try {
+    const address = await wallet.connect()
+    const connected = wallet.connected
+    if (connected && address.length) {
+      useAddress.getState().setType("Arweave.app")
+      useAddress.getState().setAddress(address)
+    }
+  } catch (err) {
+    alert(JSON.stringify(err))
+  }
+}
+
+export const autoconnect = () => {
+  window.addEventListener("arweaveWalletLoaded", async () => {
+    try {
+      await wander_checkConnection();
+
+      const address = useAddress.getState().address;
+      const type = useAddress.getState().walletType;
+
+      if (!(address && type && address.length > 0 && type === "Wander")) {
+        console.log("Checking Metamask connection");
+        await metmake_checkConnection();
+      }
+    } catch (error) {
+      console.error("Auto-connect error:", error);
+    }
+  });
+};
+
