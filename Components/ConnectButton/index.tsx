@@ -7,16 +7,9 @@ import Arweave from "../../Image/Arweave"
 import useTheme from "../../store/useTheme"
 import { disconnect, wander, metamask, arweave, autoconnect } from "../../utils/wallet"
 import useAddress, { WalletType } from "../../store/useAddress"
-
-type ButtonSize = "sm" | "md" | "lg"
-
-interface WalletButtonProps {
-  size?: ButtonSize
-}
-
-export default function ConnectButton({
-  size = "md"
-}: WalletButtonProps) {
+import useBreakpoint from "../../hooks/useBreakpoint"
+export default function ConnectButton() {
+  const size = useBreakpoint()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedWallet, setSelectedWallet] = useState<WalletType>()
   const { theme: _theme } = useTheme()

@@ -124,13 +124,18 @@ export const autoconnect = () => {
 
       const address = useAddress.getState().address;
       const type = useAddress.getState().walletType;
-
       if (!(address && type && address.length > 0 && type === "Wander")) {
         console.log("Checking Metamask connection");
         await metmake_checkConnection();
+        if (!(address && type && address.length > 0 && type === "Wander")) {
+          return false;
+        }
+        return true;
       }
+      return true;
     } catch (error) {
       console.error("Auto-connect error:", error);
+      return false;
     }
   });
 };

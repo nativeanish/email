@@ -1,6 +1,6 @@
 function Wander() {
   return (
-    <svg width="128" height="60" viewBox="0 0 128 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 128 60" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="Group 196">
         <path id="R" fill-rule="evenodd" clip-rule="evenodd" d="M88.0856 29.8734L65.5215 1.26216C64.5709 0.028604 63.6387 -0.172854 62.6177 1.15206L40.0187 29.8269L61.8918 49.5963L64.016 4.30316L66.1401 49.5963L88.0856 29.8734Z" fill="url(#paint0_linear_639_639)" />
         <path id="R_2" d="M104.109 59.4431L127.041 10.506C127.533 9.43408 126.358 8.36292 125.336 8.95146L91.0461 28.6603L68.7575 53.7691L104.109 59.4431Z" fill="url(#paint1_linear_639_639)" />
