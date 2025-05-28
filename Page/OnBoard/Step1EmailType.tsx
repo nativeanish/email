@@ -1,55 +1,65 @@
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ChevronRight } from "lucide-react"
-import useAddress from "../../store/useAddress"
-import Modal from "../../Components/UI/Modal"
-import Connect from "../../Components/Connect"
-import Arweave from "../../Image/Arweave"
-import Ario from "../../Image/Ario"
-import Spinner from "../../Image/Ario/Spinner"
-import { get_primary_name } from "../../utils/arns"
-import useOnboard from "../../store/useOnboard"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
+import useAddress from "../../store/useAddress";
+import Modal from "../../Components/UI/Modal";
+import Connect from "../../Components/Connect";
+import Arweave from "../../Image/Arweave";
+import Ario from "../../Image/Ario";
+import Spinner from "../../Image/Ario/Spinner";
+import { get_primary_name } from "../../utils/arns";
+import useOnboard from "../../store/useOnboard";
+import useUser from "../../store/useUser";
 
 interface Step1Props {
-  onNext: (type: "arns" | "wallet") => void
+  onNext: (type: "arns" | "wallet") => void;
 }
 
 export default function Step1EmailType({ onNext }: Step1Props) {
-  const [, setMounted] = useState(false)
-  const { address, walletType } = useAddress()
-  const [showModal, setShowModal] = useState(false)
-  const [showcheckModal, setShowCheckModal] = useState(false)
-  const [demo, setDemo] = useState<null | string>(null)
-  const { arns_name, process_id, set_type, type } = useOnboard()
+  const [, setMounted] = useState(false);
+  const { address, walletType } = useAddress();
+  const [showModal, setShowModal] = useState(false);
+  const [showcheckModal, setShowCheckModal] = useState(false);
+  const [demo, setDemo] = useState<null | string>(null);
+  const { arns_name, process_id, set_type, type } = useOnboard();
+  const { user } = useUser();
   useEffect(() => {
-    if (!(address && address.length > 0 && walletType && walletType.length > 0)) {
-      setShowModal(true)
+    if (
+      !(address && address.length > 0 && walletType && walletType.length > 0)
+    ) {
+      setShowModal(true);
     } else {
-      setShowModal(false)
-      setShowCheckModal(true)
-      get_primary_name(address).then(() => {
-        setShowCheckModal(false)
-      }).catch(() => setShowCheckModal(false))
+      setShowModal(false);
+      setShowCheckModal(true);
+      get_primary_name(address)
+        .then(() => {
+          setShowCheckModal(false);
+        })
+        .catch(() => setShowCheckModal(false));
     }
-    if (arns_name && arns_name.length > 0 && process_id && process_id.length > 0) {
-      setDemo(arns_name)
-      set_type("arns")
+    if (
+      arns_name &&
+      arns_name.length > 0 &&
+      process_id &&
+      process_id.length > 0
+    ) {
+      setDemo(arns_name);
+      set_type("arns");
     } else {
-      set_type("wallet")
+      set_type("wallet");
     }
-  }, [address, walletType, arns_name, process_id, set_type])
+  }, [address, walletType, arns_name, process_id, set_type]);
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
 
     // Auto-select the first option after a delay for animation effect
     const timer = setTimeout(() => {
-      set_type("wallet")
-    }, 800)
+      set_type("wallet");
+    }, 800);
 
-    return () => clearTimeout(timer)
-  }, [set_type])
-
+    return () => clearTimeout(timer);
+  }, [set_type]);
 
   return (
     <>
@@ -59,17 +69,26 @@ export default function Step1EmailType({ onNext }: Step1Props) {
         transition={{ duration: 0.7, delay: 0.3 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold mb-4 tracking-tight">Choose your email type</h2>
+        <h2 className="text-3xl font-bold mb-4 tracking-tight">
+          Choose your email type
+        </h2>
         <p className="text-gray-400">
-          Creating your decentralized email is just a few steps away. Enter your details to continue.
+          Creating your decentralized email is just a few steps away. Enter your
+          details to continue.
         </p>
       </motion.div>
 
       <div className="space-y-4 w-full">
         <motion.div
-          className={`border ${type === "arns" ? "border-white" : "border-zinc-700"} 
+          className={`border ${
+            type === "arns" ? "border-white" : "border-zinc-700"
+          } 
           bg-zinc-800/50 rounded-lg p-5 flex items-center hover:bg-zinc-800 transition-all duration-300 
-          cursor-pointer relative overflow-hidden group ${(!arns_name && (!demo || demo.length === 0)) ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}`}
+          cursor-pointer relative overflow-hidden group ${
+            !arns_name && (!demo || demo.length === 0)
+              ? "opacity-50 pointer-events-none cursor-not-allowed"
+              : ""
+          }`}
           onClick={() => {
             if (arns_name || (demo && demo.length > 0)) {
               set_type("arns");
@@ -82,20 +101,29 @@ export default function Step1EmailType({ onNext }: Step1Props) {
           whileTap={{ scale: 0.99 }}
         >
           <div
-            className={`absolute inset-0 bg-gradient-to-r from-white/5 to-transparent ${type === "arns" ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+            className={`absolute inset-0 bg-gradient-to-r from-white/5 to-transparent ${
+              type === "arns" ? "opacity-100" : "opacity-0"
+            } transition-opacity duration-500`}
           ></div>
           <div
-            className={`h-14 w-14 rounded-lg flex items-center justify-center mr-5 transition-all duration-500 ${type === "arns" ? "bg-white" : "bg-zinc-800"}`}
+            className={`h-14 w-14 rounded-lg flex items-center justify-center mr-5 transition-all duration-500 ${
+              type === "arns" ? "bg-white" : "bg-zinc-800"
+            }`}
           >
             <div
-              className={`h-7 w-7 transition-colors duration-500 ${type === "arns" ? "text-black" : "text-gray-400"}`}
+              className={`h-7 w-7 transition-colors duration-500 ${
+                type === "arns" ? "text-black" : "text-gray-400"
+              }`}
             >
               <Ario theme={type === "arns" ? "dark" : "light"} />
             </div>
           </div>
           <div className="flex-1 z-10">
             <h3 className="font-medium text-lg">ArNS</h3>
-            <p className="text-sm text-gray-400">{demo && demo.length > 0 ? <>{demo}</> : <>demouser</>}@perma.email</p>
+            <p className="text-sm text-gray-400">
+              {demo && demo.length > 0 ? <>{demo}</> : <>demouser</>}
+              @perma.email
+            </p>
           </div>
           <motion.div
             className="text-white"
@@ -116,7 +144,9 @@ export default function Step1EmailType({ onNext }: Step1Props) {
           />
         </motion.div>
         <motion.div
-          className={`border ${type === "wallet" ? "border-white" : "border-zinc-700"} 
+          className={`border ${
+            type === "wallet" ? "border-white" : "border-zinc-700"
+          } 
           bg-zinc-800/50 rounded-lg p-5 flex items-center hover:bg-zinc-800 transition-all duration-300 
           cursor-pointer relative overflow-hidden group`}
           onClick={() => set_type("wallet")}
@@ -127,20 +157,28 @@ export default function Step1EmailType({ onNext }: Step1Props) {
           whileTap={{ scale: 0.99 }}
         >
           <div
-            className={`absolute inset-0 bg-gradient-to-r from-white/5 to-transparent ${type === "wallet" ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
+            className={`absolute inset-0 bg-gradient-to-r from-white/5 to-transparent ${
+              type === "wallet" ? "opacity-100" : "opacity-0"
+            } transition-opacity duration-500`}
           ></div>
           <div
-            className={`h-14 w-14 rounded-lg flex items-center justify-center mr-5 transition-all duration-500 ${type === "wallet" ? "bg-white" : "bg-zinc-800"}`}
+            className={`h-14 w-14 rounded-lg flex items-center justify-center mr-5 transition-all duration-500 ${
+              type === "wallet" ? "bg-white" : "bg-zinc-800"
+            }`}
           >
             <div
-              className={`h-7 w-7 transition-colors duration-500 ${type === "wallet" ? "text-black" : "text-gray-400"}`}
+              className={`h-7 w-7 transition-colors duration-500 ${
+                type === "wallet" ? "text-black" : "text-gray-400"
+              }`}
             >
               <Arweave theme={type === "wallet" ? "light" : "dark"} />
             </div>
           </div>
           <div className="flex-1 z-10">
             <h3 className="font-medium text-lg">Address</h3>
-            <p className="text-sm text-gray-400">{address && address.slice(0, 6)}...@perma.email</p>
+            <p className="text-sm text-gray-400">
+              {address && address.slice(0, 6)}...@perma.email
+            </p>
           </div>
           <motion.div
             className="text-white"
@@ -183,13 +221,23 @@ export default function Step1EmailType({ onNext }: Step1Props) {
         </motion.button>
       </motion.div>
 
-      <Modal isOpen={showModal || showcheckModal} onClose={() => showModal ? setShowModal(false) : setShowCheckModal(false)} theme="light" title={showModal ? "Select a Wallet to Continue" : "Checking ArNS registry"}>
+      <Modal
+        isOpen={showModal || showcheckModal}
+        onClose={() =>
+          showModal ? setShowModal(false) : setShowCheckModal(false)
+        }
+        theme="light"
+        title={
+          showModal ? "Select a Wallet to Continue" : "Checking ArNS registry"
+        }
+      >
         {showModal && <Connect />}
-        {showcheckModal && <div className="flex justify-center items-center">
-          <Spinner theme="light" />
-        </div>}
+        {showcheckModal && (
+          <div className="flex justify-center items-center">
+            <Spinner theme="light" />
+          </div>
+        )}
       </Modal>
     </>
-  )
+  );
 }
-
