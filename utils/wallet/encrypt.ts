@@ -36,12 +36,14 @@ async function encrypt_wander(text: string) {
         hash: "SHA-256",
 
       })
+    console.log("Encrypted Data:", encryptedData);
     return { data: encryptedData, version: "RSA-OAEP", hash: "SHA-256" }
   }
   return null;
 }
 
 async function encrypt_arweave(text: string) {
+  console.log(text)
   const publicKey = await wallet.getPublicKey();
   console.log("Public Key:", publicKey);
   const encryptedData = await wallet.encrypt(new TextEncoder().encode(text), publicKey, { name: "RSA-OAEP" });
