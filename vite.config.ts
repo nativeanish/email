@@ -1,16 +1,30 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import mkcert from 'vite-plugin-mkcert'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import mkcert from "vite-plugin-mkcert";
+import nodeStdlibBrowser from "vite-plugin-node-stdlib-browser";
 
-
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), mkcert()],
+  plugins: [
+    nodeStdlibBrowser(), // <-- FIRST!
+    react(),
+    tailwindcss(),
+    mkcert(),
+  ],
   server: {
     port: 3000,
     cors: true,
-    host: true,
-    https: false
-  }
-})
+  },
+  resolve: {
+    alias: {
+      events: "events",
+      stream: "stream-browserify",
+      util: "util",
+      process: "process/browser",
+      crypto: "crypto-browserify",
+      os: "os-browserify/browser",
+      path: "path-browserify",
+      constants: "constants-browserify",
+    },
+  },
+});

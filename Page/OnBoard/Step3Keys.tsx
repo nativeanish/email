@@ -1,59 +1,76 @@
-import { useState, useEffect } from "react"
-import React from "react"
-import { motion } from "framer-motion"
-import { ChevronRight, ArrowLeft, Lock } from "lucide-react"
-import useOnboard from "../../store/useOnboard"
-import { generateKeys } from "../../utils/crypto.ts"
-import encrypt from "../../utils/wallet/encrypt.ts"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ChevronRight, ArrowLeft, Lock } from "lucide-react";
+import useOnboard from "../../store/useOnboard";
+import { generateKeys } from "../../utils/crypto.ts";
+import encrypt from "../../utils/wallet/encrypt.ts";
+import Modal from "../../Components/UI/Modal/index.tsx";
+import Spinner from "../../Image/Ario/Spinner.tsx";
 
 interface Step3Props {
-  onNext: () => void
-  onBack: () => void
+  onNext: () => void;
+  onBack: () => void;
 }
 
 export default function Step3Keys({ onNext, onBack }: Step3Props) {
-  const [generatingKeys, setGeneratingKeys] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const { name, image, type, keys, set_keys } = useOnboard()
+  const [generatingKeys, setGeneratingKeys] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const { name, image, type, keys, set_keys } = useOnboard();
+  const [uploadded, setUploaded] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   useEffect(() => {
     if (!(name && image && type)) {
-      onBack()
+      onBack();
     }
-  }, [name, image, type, onBack])
+  }, [name, image, type, onBack]);
   useEffect(() => {
     // Start key generation animation
-    startKeyGeneration()
-    generateKeys().then(({ publicKey, privateKey }) => {
-      set_keys({ publicKey, privateKey })
-    })
-      .catch((error) => { console.error("Error generating keys:", error) })
-  }, [set_keys])
+    startKeyGeneration();
+    generateKeys()
+      .then(({ publicKey, privateKey }) => {
+        console.log("Keys generated:", publicKey, privateKey);
+        set_keys({ publicKey, privateKey });
+      })
+      .catch((error) => {
+        console.error("Error generating keys:", error);
+      });
+  }, [set_keys]);
 
   const startKeyGeneration = () => {
-    setGeneratingKeys(true)
+    setGeneratingKeys(true);
 
     // Simulate key generation with progress
-    let currentProgress = 0
+    let currentProgress = 0;
     const interval = setInterval(() => {
-      currentProgress += 2
-      setProgress(currentProgress)
+      currentProgress += 2;
+      setProgress(currentProgress);
 
       if (currentProgress >= 100) {
-        clearInterval(interval)
+        clearInterval(interval);
         // Wait a moment before enabling continue
         setTimeout(() => {
-          setGeneratingKeys(false)
-        }, 500)
+          setGeneratingKeys(false);
+        }, 500);
       }
-    }, 100)
-  }
+    }, 100);
+  };
 
   const save = async () => {
     if (!keys || !keys.privateKey) {
       return;
     }
-    encrypt(keys.privateKey).then(console.log).catch(console.error)
-  }
+    setShowModal(true)
+    encrypt(keys.privateKey)
+      .then((e) => {
+        console.log("Uploaded id", e);
+        setUploaded(true);
+        if (!e) {
+          console.error("Upload failed");
+          return;
+        }
+      })
+      .catch(console.error);
+  };
 
   return (
     <>
@@ -63,8 +80,12 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
         transition={{ duration: 0.7, delay: 0.3 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold mb-4 tracking-tight">Generating your keys</h2>
-        <p className="text-gray-400">Please wait while we generate secure encryption keys for your email.</p>
+        <h2 className="text-3xl font-bold mb-4 tracking-tight">
+          Generating your keys
+        </h2>
+        <p className="text-gray-400">
+          Please wait while we generate secure encryption keys for your email.
+        </p>
       </motion.div>
 
       <div className="space-y-8 w-full">
@@ -98,7 +119,14 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
 
             {/* Circular progress indicator */}
             <svg className="absolute inset-0 w-full h-full -rotate-90">
-              <circle cx="80" cy="80" r="74" fill="none" stroke="#3f3f46" strokeWidth="8" />
+              <circle
+                cx="80"
+                cy="80"
+                r="74"
+                fill="none"
+                stroke="#3f3f46"
+                strokeWidth="8"
+              />
               <motion.circle
                 cx="80"
                 cy="80"
@@ -117,7 +145,9 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
           </div>
 
           <div className="text-center">
-            <p className="text-xl font-semibold mb-2">{progress < 100 ? `${progress}% Complete` : "Keys Generated!"}</p>
+            <p className="text-xl font-semibold mb-2">
+              {progress < 100 ? `${progress}% Complete` : "Keys Generated!"}
+            </p>
             <p className="text-gray-400 text-sm max-w-xs mx-auto">
               {progress < 100
                 ? "Creating secure encryption keys for your emails..."
@@ -143,18 +173,35 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
           </motion.button>
 
           <motion.button
-            className={`bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2 group ${generatingKeys ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2 group ${
+              generatingKeys ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             whileHover={!generatingKeys ? { scale: 1.03 } : {}}
             whileTap={!generatingKeys ? { scale: 0.97 } : {}}
             onClick={() => save()}
             disabled={generatingKeys}
           >
-            Continue
+            {uploadded ? <>Continue</> : <>Upload Keys and Save</>}
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </motion.button>
         </motion.div>
       </div>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        theme="light"
+        title={!uploadded ? "Registering Keys" : "Registering User"}
+      >
+        {uploadded ? (
+          <div className="flex justify-center items-center">
+            <Spinner theme="light" />
+          </div>
+        ) : (
+          <div className="flex justify-center items-center">
+            <Spinner theme="light" />
+          </div>
+        )}
+      </Modal>
     </>
-  )
+  );
 }
-

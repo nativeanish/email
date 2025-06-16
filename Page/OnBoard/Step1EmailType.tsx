@@ -9,7 +9,8 @@ import Ario from "../../Image/Ario";
 import Spinner from "../../Image/Ario/Spinner";
 import { get_primary_name } from "../../utils/arns";
 import useOnboard from "../../store/useOnboard";
-import useUser from "../../store/useUser";
+import { useNavigate } from "react-router-dom";
+import { check_user, get_primary_name as get_primary_name_ao } from "../../utils/ao";
 
 interface Step1Props {
   onNext: (type: "arns" | "wallet") => void;
@@ -22,7 +23,7 @@ export default function Step1EmailType({ onNext }: Step1Props) {
   const [showcheckModal, setShowCheckModal] = useState(false);
   const [demo, setDemo] = useState<null | string>(null);
   const { arns_name, process_id, set_type, type } = useOnboard();
-  const { user } = useUser();
+  const route = useNavigate();
   useEffect(() => {
     if (
       !(address && address.length > 0 && walletType && walletType.length > 0)
@@ -60,6 +61,28 @@ export default function Step1EmailType({ onNext }: Step1Props) {
 
     return () => clearTimeout(timer);
   }, [set_type]);
+
+  useEffect(() => {
+    check_user()
+      .then((data) => {
+        console.log(data)
+        if (data) {
+          route("/inbox");
+        }
+      })
+      .catch((err) => {
+        console.error("Error checking user:", err);
+        route("/404");
+      });
+  }, []);
+
+  useEffect(() =>{
+   if(address && address.length > 0){
+    console.log("Running get_primary_name_ao for address:", address);
+    get_primary_name_ao(address).then(() => console.log("Primary name AO")).catch(() => console.log("Error getting primary name AO"));
+   }
+  },[])
+
 
   return (
     <>

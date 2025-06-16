@@ -3,6 +3,7 @@ import ConnectButton from "../../Components/ConnectButton";
 import useAddress from "../../store/useAddress";
 import { check_user } from "../../utils/ao";
 import useUser from "../../store/useUser";
+import { Link } from "react-router-dom";
 function Index() {
   const { address } = useAddress();
   const { user } = useUser();
@@ -35,7 +36,7 @@ function Index() {
       {isRegister ? (
         <p>Welcome back, {user?.username}!</p>
       ) : (
-        <p>Please register to continue.</p>
+        <p>Please <Link to={"onboard"}>Click</Link> to continue.</p>
       )}
       <p>Your address: {address || "Not connected"}</p>
     </div>

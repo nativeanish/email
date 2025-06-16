@@ -45,6 +45,7 @@ export async function get_primary_name(address: string) {
     }
   }
   catch (error) {
+    console.log("There was an error fetching the primary name:");
     console.log(error);
     return false;
   }
