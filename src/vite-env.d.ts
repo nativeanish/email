@@ -7,3 +7,7 @@ declare global {
     ethereum?: MetaMaskInpageProvider;
   }
 }
+declare module 'vite-plugin-node-stdlib-browser' {
+  const plugin: any;
+  export default plugin;
+}

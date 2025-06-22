@@ -17,11 +17,11 @@ export default function Step4Complete() {
       const simplifiedName = name
         .toLowerCase()
         .replace(/[^a-z0-9]/g, "")
-        .substring(0, 10)
+        .substring(0, 16)
       setEmailAddress(`${simplifiedName}@perma.email`)
     } else {
       // For wallet type, use a shortened address
-      const shortAddress = address ? address.substring(0, 6) + "..." + address.substring(address.length - 4) : ""
+      const shortAddress = address ? address.substring(0, 8) + "..." + address.substring(address.length - 4) : ""
       setEmailAddress(`${shortAddress}@perma.email`)
     }
   }, [address, emailType, name])
@@ -73,7 +73,7 @@ export default function Step4Complete() {
               <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-700 flex-shrink-0">
                 {image_type === "url" || image_type === "file" ? (
                   <img
-                    src={image}
+                    src={`https://arweave.net/${image}`}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -83,7 +83,11 @@ export default function Step4Complete() {
               </div>
               <div>
                 <p className="text-sm text-gray-400 mb-1">Display Name</p>
-                <p className="font-medium">{name || "Loading..."}</p>
+                {name && name.length > 16 ? (
+                  <p className="font-medium">{name.slice(0, 16)}...</p>
+                ) : (
+                  <p className="font-medium">{name || "Loading..."}</p>
+                )}
               </div>
             </div>
 

@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import mkcert from "vite-plugin-mkcert";
 import nodeStdlibBrowser from "vite-plugin-node-stdlib-browser";
 
 export default defineConfig({
@@ -9,11 +8,10 @@ export default defineConfig({
     nodeStdlibBrowser(), // <-- FIRST!
     react(),
     tailwindcss(),
-    mkcert(),
   ],
   server: {
     port: 3000,
-    cors: true,
+    cors: false,
   },
   resolve: {
     alias: {

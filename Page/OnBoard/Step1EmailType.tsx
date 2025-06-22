@@ -1,89 +1,109 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import useAddress from "../../store/useAddress";
-import Modal from "../../Components/UI/Modal";
-import Connect from "../../Components/Connect";
 import Arweave from "../../Image/Arweave";
 import Ario from "../../Image/Ario";
-import Spinner from "../../Image/Ario/Spinner";
-import { get_primary_name } from "../../utils/arns";
 import useOnboard from "../../store/useOnboard";
 import { useNavigate } from "react-router-dom";
-import { check_user, get_primary_name as get_primary_name_ao } from "../../utils/ao";
+import { check_user } from "../../utils/ao";
+import { showDanger } from "../../Components/UI/Toast/Toast-Context";
+import { get_wallet_ario, set_details } from "../../utils/arns";
+import Dialog from "../../Components/UI/Dialog";
+import useLoading from "../../store/useLoading";
 
 interface Step1Props {
   onNext: (type: "arns" | "wallet") => void;
 }
 
 export default function Step1EmailType({ onNext }: Step1Props) {
-  const [, setMounted] = useState(false);
   const { address, walletType } = useAddress();
-  const [showModal, setShowModal] = useState(false);
-  const [showcheckModal, setShowCheckModal] = useState(false);
-  const [demo, setDemo] = useState<null | string>(null);
-  const { arns_name, process_id, set_type, type } = useOnboard();
+  const { arns_name, process_id, set_type, type, arns, image } = useOnboard();
   const route = useNavigate();
+  const {
+    open,
+    setTitle,
+    setDescription,
+    setDarkMode,
+    setSize,
+    setShowCloseButton,
+    close,
+  } = useLoading();
   useEffect(() => {
-    if (
-      !(address && address.length > 0 && walletType && walletType.length > 0)
-    ) {
-      setShowModal(true);
-    } else {
-      setShowModal(false);
-      setShowCheckModal(true);
-      get_primary_name(address)
-        .then(() => {
-          setShowCheckModal(false);
-        })
-        .catch(() => setShowCheckModal(false));
+    async function _check_user(address: string) {
+      setTitle("Checking User Status") 
+      setDescription(
+        "Please wait while we check your user status."
+      );
+      setDarkMode(true);
+      setSize("md");
+      setShowCloseButton(false);
+      open();
+      const result = await check_user(address);
+      if (!result) {
+        close();
+        showDanger(
+          "Error Checking user.",
+          "Error Checking user, please try again later. Redirecting .....",
+          5000
+        );
+        setTimeout(() => {
+          route("/");
+        }, 6000);
+        return;
+      }
+      console.log("Check user result:", result);
+      if (result.status === 1) {
+        close();
+        route("/inbox");
+        return;
+      }
+      setTitle("Checking ARIO registration");
+       setDescription(
+        "Please wait while we check your ARIO registration status."
+      );
+      const data = await get_wallet_ario(address);
+      setTitle("Fetching ARIO data");
+      setDescription("Please wait while we fetch your ARIO data.");
+      if (data === undefined) {
+        close();
+        setTimeout(() => {
+          showDanger(
+            "Error in ARIO data",
+            "Failed to fetch ARIO data. Please try again later. Redirecting .....",
+            6000
+          );
+          route("/404");
+        }, 6000);
+      }
+      if (data === false) {
+        close();
+        return;
+      }
+      if (
+        data &&
+        arns &&
+        arns_name &&
+        process_id &&
+        process_id.length > 0 &&
+        arns_name.length > 0
+      ) {
+        await set_details(process_id);
+        close();
+        return true;
+      }
+      close();
+      return true;
     }
-    if (
-      arns_name &&
-      arns_name.length > 0 &&
-      process_id &&
-      process_id.length > 0
-    ) {
-      setDemo(arns_name);
-      set_type("arns");
-    } else {
-      set_type("wallet");
+    if (address && address.length > 0 && walletType && walletType.length > 0) {
+      _check_user(address)
+        .then(() => close())
+        .catch((err) => {
+          console.log(err);
+          close();
+        });
     }
-  }, [address, walletType, arns_name, process_id, set_type]);
-
-  useEffect(() => {
-    setMounted(true);
-
-    // Auto-select the first option after a delay for animation effect
-    const timer = setTimeout(() => {
-      set_type("wallet");
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [set_type]);
-
-  useEffect(() => {
-    check_user()
-      .then((data) => {
-        console.log(data)
-        if (data) {
-          route("/inbox");
-        }
-      })
-      .catch((err) => {
-        console.error("Error checking user:", err);
-        route("/404");
-      });
   }, []);
-
-  useEffect(() =>{
-   if(address && address.length > 0){
-    console.log("Running get_primary_name_ao for address:", address);
-    get_primary_name_ao(address).then(() => console.log("Primary name AO")).catch(() => console.log("Error getting primary name AO"));
-   }
-  },[])
-
-
   return (
     <>
       <motion.div
@@ -108,12 +128,12 @@ export default function Step1EmailType({ onNext }: Step1Props) {
           } 
           bg-zinc-800/50 rounded-lg p-5 flex items-center hover:bg-zinc-800 transition-all duration-300 
           cursor-pointer relative overflow-hidden group ${
-            !arns_name && (!demo || demo.length === 0)
+            !arns_name && (!arns_name || arns_name.length === 0)
               ? "opacity-50 pointer-events-none cursor-not-allowed"
               : ""
           }`}
           onClick={() => {
-            if (arns_name || (demo && demo.length > 0)) {
+            if (arns_name && arns_name.length > 0) {
               set_type("arns");
             }
           }}
@@ -138,13 +158,23 @@ export default function Step1EmailType({ onNext }: Step1Props) {
                 type === "arns" ? "text-black" : "text-gray-400"
               }`}
             >
-              <Ario theme={type === "arns" ? "dark" : "light"} />
+              {image && image.length > 0 ? (
+                <img src={`https://arweave.net/${image}`} alt="ArNS" className="h-6 w-7 rounded-full" />
+              ) : (
+                <Ario theme={type === "arns" ? "dark" : "light"} />
+              )}
             </div>
           </div>
           <div className="flex-1 z-10">
-            <h3 className="font-medium text-lg">ArNS</h3>
+            <h3 className="font-medium text-lg">
+              {arns_name && arns_name.length > 0 ? arns_name : "ArNS"}
+            </h3>
             <p className="text-sm text-gray-400">
-              {demo && demo.length > 0 ? <>{demo}</> : <>demouser</>}
+              {arns_name && arns_name.length > 0 ? (
+                <>{arns_name}</>
+              ) : (
+                <>demouser</>
+              )}
               @perma.email
             </p>
           </div>
@@ -243,24 +273,7 @@ export default function Step1EmailType({ onNext }: Step1Props) {
           <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
         </motion.button>
       </motion.div>
-
-      <Modal
-        isOpen={showModal || showcheckModal}
-        onClose={() =>
-          showModal ? setShowModal(false) : setShowCheckModal(false)
-        }
-        theme="light"
-        title={
-          showModal ? "Select a Wallet to Continue" : "Checking ArNS registry"
-        }
-      >
-        {showModal && <Connect />}
-        {showcheckModal && (
-          <div className="flex justify-center items-center">
-            <Spinner theme="light" />
-          </div>
-        )}
-      </Modal>
+      <Dialog />
     </>
   );
 }

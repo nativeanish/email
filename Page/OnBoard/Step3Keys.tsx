@@ -4,27 +4,37 @@ import { ChevronRight, ArrowLeft, Lock } from "lucide-react";
 import useOnboard from "../../store/useOnboard";
 import { generateKeys } from "../../utils/crypto.ts";
 import encrypt from "../../utils/wallet/encrypt.ts";
-import Modal from "../../Components/UI/Modal/index.tsx";
-import Spinner from "../../Image/Ario/Spinner.tsx";
+import registerUser from "../../utils/aos/registerUser.ts";
+import Dialog from "../../Components/UI/Dialog/index.tsx";
+import useLoading from "../../store/useLoading.ts";
+import { showDanger, showSuccess } from "../../Components/UI/Toast/Toast-Context.tsx";
+import { useNavigate } from "react-router-dom";
 
 interface Step3Props {
   onNext: () => void;
   onBack: () => void;
 }
-
 export default function Step3Keys({ onNext, onBack }: Step3Props) {
+ const naviage = useNavigate()
   const [generatingKeys, setGeneratingKeys] = useState(false);
   const [progress, setProgress] = useState(0);
   const { name, image, type, keys, set_keys } = useOnboard();
-  const [uploadded, setUploaded] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [uploadded, ] = useState(false);
+  const {
+    open,
+    setTitle,
+    setDescription,
+    setDarkMode,
+    setSize,
+    setShowCloseButton,
+    close,
+  } = useLoading();
   useEffect(() => {
     if (!(name && image && type)) {
       onBack();
     }
   }, [name, image, type, onBack]);
   useEffect(() => {
-    // Start key generation animation
     startKeyGeneration();
     generateKeys()
       .then(({ publicKey, privateKey }) => {
@@ -38,8 +48,6 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
 
   const startKeyGeneration = () => {
     setGeneratingKeys(true);
-
-    // Simulate key generation with progress
     let currentProgress = 0;
     const interval = setInterval(() => {
       currentProgress += 2;
@@ -47,7 +55,6 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
 
       if (currentProgress >= 100) {
         clearInterval(interval);
-        // Wait a moment before enabling continue
         setTimeout(() => {
           setGeneratingKeys(false);
         }, 500);
@@ -57,19 +64,57 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
 
   const save = async () => {
     if (!keys || !keys.privateKey) {
+      showDanger(
+        "No Keys Found",
+        "Please generate your keys before proceeding.",
+        6000
+      );
+      setTimeout(() => {
+        naviage("/")
+      }, 4000);
       return;
     }
-    setShowModal(true)
-    encrypt(keys.privateKey)
-      .then((e) => {
-        console.log("Uploaded id", e);
-        setUploaded(true);
-        if (!e) {
-          console.error("Upload failed");
-          return;
-        }
-      })
-      .catch(console.error);
+    setTitle("Encrypting Keys");
+    setDescription("Allow your Wallet to encrypt your keys securely.");
+    setDarkMode(true);
+    setSize("md");
+    setShowCloseButton(false);
+    open();
+    if (!keys || !keys.privateKey) {
+      close();
+      showDanger(
+        "No Keys Found",
+        "Please generate your keys before proceeding.",
+        6000
+      );
+      console.error("No keys or private key found");
+      naviage("/");
+      return;
+    }
+    const encrypted_privateKey = await encrypt(keys.privateKey);
+    if (!encrypted_privateKey) {
+      close();
+      showDanger(
+        "Encryption Failed",
+        "Encryption failed. Please check your wallet connection.",
+        6000
+      );
+      console.error("Encryption failed");
+      return;
+    }
+    console.log("Encrypted Private Key:", encrypted_privateKey);
+    const sa = await registerUser(encrypted_privateKey)
+    console.log("Registration Status:", sa);
+    if(sa){
+      close();
+      showSuccess("Registration Successful", "Your keys have been securely registered.", 3000);
+      onNext();
+    }else{
+      close();
+      showDanger("Registration Failed", "Failed to register your Account. Please try again.", 6000);
+      console.error("Registration failed");
+      naviage("/");
+    }
   };
 
   return (
@@ -178,30 +223,15 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
             }`}
             whileHover={!generatingKeys ? { scale: 1.03 } : {}}
             whileTap={!generatingKeys ? { scale: 0.97 } : {}}
-            onClick={() => save()}
+            onClick={() => save().then(console.log).catch(console.log)}
             disabled={generatingKeys}
           >
-            {uploadded ? <>Continue</> : <>Upload Keys and Save</>}
+            {uploadded ? <>Continue</> : <>Register</>}
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </motion.button>
         </motion.div>
       </div>
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        theme="light"
-        title={!uploadded ? "Registering Keys" : "Registering User"}
-      >
-        {uploadded ? (
-          <div className="flex justify-center items-center">
-            <Spinner theme="light" />
-          </div>
-        ) : (
-          <div className="flex justify-center items-center">
-            <Spinner theme="light" />
-          </div>
-        )}
-      </Modal>
+      <Dialog />
     </>
   );
 }

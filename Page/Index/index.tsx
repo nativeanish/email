@@ -5,29 +5,31 @@ import { check_user } from "../../utils/ao";
 import useUser from "../../store/useUser";
 import { Link } from "react-router-dom";
 function Index() {
-  const { address } = useAddress();
+  const { address, walletType } = useAddress();
   const { user } = useUser();
   const [isRegister, setisRegister] = useState<boolean>(false);
   useEffect(() => {
-    if (address) {
-      if (user && user.address === address) {
-        setisRegister(true);
-        return;
-      } else {
-        check_user()
-          .then((data) => {
-            if (data) {
-              setisRegister(true);
-            } else {
-              setisRegister(false);
-              localStorage.setItem("user", "undefined");
-              useUser.setState({ user: undefined });
-            }
-          })
-          .catch(console.error);
-      }
-    }
-    console.log(address);
+    // if (address) {
+    //   if (user && user.address === address) {
+    //     setisRegister(true);
+    //     return;
+    //   } else {
+    //     check_user()
+    //       .then((data) => {
+    //         if (data) {
+    //           setisRegister(true);
+    //         } else {
+    //           setisRegister(false);
+    //           localStorage.setItem("user", "undefined");
+    //           useUser.setState({ user: undefined });
+    //         }
+    //       })
+    //       .catch(console.error);
+    //   }
+    // }
+    // console.log(address);
+    console.log("Address changed:", address);
+    console.log("Wallet type:", walletType);
   }, [address]);
   return (
     <div>

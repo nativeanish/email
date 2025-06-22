@@ -1,58 +1,114 @@
-import React from "react"
-
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { ChevronRight, ArrowLeft, User, Upload, RefreshCw } from "lucide-react"
-import useOnboard from "../../store/useOnboard"
-import { set_details } from "../../utils/arns"
-import useAddress from "../../store/useAddress"
+import React from "react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ChevronRight, ArrowLeft, User, Upload, RefreshCw } from "lucide-react";
+import useOnboard from "../../store/useOnboard";
+import { set_details } from "../../utils/arns";
+import useAddress from "../../store/useAddress";
+import { showDanger, useToast } from "../../Components/UI/Toast/Toast-Context";
 interface Step2Props {
-  onNext: () => void
-  onBack: () => void
+  onNext: () => void;
+  onBack: () => void;
 }
 
-
 export default function Step2Profile({ onNext, onBack }: Step2Props) {
-  const { name, set_name, bio, set_bio, image, set_image, set_image_type, arns, type, arns_name } = useOnboard()
+  const {
+    name,
+    set_name,
+    bio,
+    set_bio,
+    image,
+    set_image,
+    set_image_type,
+    arns,
+    type,
+    arns_name,
+    image_type,
+  } = useOnboard();
 
-  const [loading, setLoading] = useState(false)
-  const { address } = useAddress()
+  const [loading, setLoading] = useState(false);
+  const { addToast } = useToast();
+  const { address } = useAddress();
+  const { process_id } = useOnboard();
   useEffect(() => {
     if (type === "wallet" && address && address.length > 0) {
-      set_name((address))
+      set_name(address);
     }
     if (type === "arns" && arns_name && arns_name.length > 0) {
-      set_name(arns_name)
+      set_name(arns_name);
     }
-  }, [type, address, set_name, arns_name])
+  }, [type, address, set_name, arns_name]);
 
   useEffect(() => {
     if (!type) {
-      onBack()
+      onBack();
     }
-  }, [type, onBack])
+  }, [type, onBack]);
 
-
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const fileUrl = URL.createObjectURL(file)
-      set_image(fileUrl)
-      set_image_type("file")
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validImageTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/jpg",
+      "image/svg+xml",
+      "image/svg",
+    ];
+    if (!validImageTypes.includes(file.type)) {
+      addToast({
+        type: "danger",
+        title: "Invalid file type",
+        message:
+          "Please upload a valid image file (JPEG, PNG, WEBP, GIF, JPG, SVG).",
+        duration: 5000,
+      });
+      return;
     }
-  }
+    let finalBlob = file;
+    if (file.size > 100 * 1024) {
+      addToast({
+        type: "warning",
+        title: "File too large to upload",
+        message:
+          "Image size exceeds 100KB. It will be compressed before upload under 100KB.",
+        duration: 5000,
+      });
+      try {
+        const compressedBlob = await compressImageToUnder100KB(file);
+        finalBlob = new File([compressedBlob], file.name, {
+          type: compressedBlob.type || file.type,
+          lastModified: Date.now(),
+        });
+        set_image_type("file");
+        set_image(URL.createObjectURL(finalBlob));
+      } catch (error) {
+        addToast({
+          type: "danger",
+          title: "Compression failed",
+          message:
+            "Unable to compress image to under 100KB. Please try another image.",
+          duration: 5000,
+        });
+        return;
+      }
+    } else {
+      set_image_type("file");
+      set_image(URL.createObjectURL(file));
+    }
+  };
 
   const handleContinue = () => {
-    onNext()
-  }
+    onNext();
+  };
 
   const fetchFromArns = async () => {
-    setLoading(true)
-    await set_details()
-    setLoading(false)
-  }
-
+    setLoading(true);
+    await set_details(process_id);
+    setLoading(false);
+  };
 
   return (
     <>
@@ -62,8 +118,12 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
         transition={{ duration: 0.7, delay: 0.3 }}
         className="text-center mb-8"
       >
-        <h2 className="text-3xl font-bold mb-4 tracking-tight">Create your profile</h2>
-        <p className="text-gray-400">Tell us a bit about yourself to personalize your experience.</p>
+        <h2 className="text-3xl font-bold mb-4 tracking-tight">
+          Create your profile
+        </h2>
+        <p className="text-gray-400">
+          Tell us a bit about yourself to personalize your experience.
+        </p>
       </motion.div>
 
       <div className="space-y-6 w-full">
@@ -77,12 +137,29 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
           <div className="flex flex-col items-center mb-6">
             <div className="relative mb-4 group">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                {image.length > 0 ? (
+                {/* {image.length > 0 ? (
                   <img
                     src={image}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
+                ) : (
+                  <User className="h-12 w-12 text-gray-500" />
+                )} */}
+                {image.length > 0 ? (
+                  image_type === "url" ? (
+                    <img
+                      src={`https://arweave.net/${image}`}
+                      alt="profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={image}
+                      alt="profile"
+                      className="w-full h-full object-cover"
+                    />
+                  )
                 ) : (
                   <User className="h-12 w-12 text-gray-500" />
                 )}
@@ -93,7 +170,13 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
               >
                 <Upload className="h-6 w-6 text-white" />
               </label>
-              <input type="file" id="profilePhoto" accept="image/*" className="sr-only" onChange={handleFileChange} />
+              <input
+                type="file"
+                id="profilePhoto"
+                accept="image/*"
+                className="sr-only"
+                onChange={handleFileChange}
+              />
             </div>
             <label
               htmlFor="profilePhoto"
@@ -104,7 +187,10 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="displayName" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="displayName"
+              className="block text-sm font-medium text-gray-300"
+            >
               Username
             </label>
             <div className="relative">
@@ -125,7 +211,10 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-300">
+            <label
+              htmlFor="bio"
+              className="block text-sm font-medium text-gray-300"
+            >
               Bio
             </label>
             <textarea
@@ -148,9 +237,14 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
               onClick={fetchFromArns}
               disabled={loading}
             >
-              {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {loading ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
               {loading ? "Fetching from ArNS..." : "Fetch from ArNS"}
-            </motion.button>)}
+            </motion.button>
+          )}
         </motion.div>
 
         <motion.div
@@ -170,7 +264,9 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
           </motion.button>
 
           <motion.button
-            className={`bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2 group ${!image ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center gap-2 group ${
+              !image ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             onClick={handleContinue}
             disabled={!image}
           >
@@ -180,6 +276,44 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
         </motion.div>
       </div>
     </>
-  )
+  );
 }
 
+async function compressImageToUnder100KB(file: File): Promise<Blob> {
+  const maxSize = 100 * 1024; // 100 KB
+
+  const imageBitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) throw new Error("Canvas not supported");
+
+  canvas.width = imageBitmap.width;
+  canvas.height = imageBitmap.height;
+  ctx.drawImage(imageBitmap, 0, 0);
+
+  let quality = 0.9;
+  let blob: Blob | null = null;
+
+  while (quality > 0.1) {
+    blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality)
+    );
+
+    if (blob && blob.size <= maxSize) {
+      return blob;
+    }
+
+    quality -= 0.1; // Reduce quality step-by-step
+  }
+
+  if (!blob) {
+    showDanger(
+      "Compression failed",
+      "Unable to compress image to under 100KB. Please try other image."
+    );
+    throw new Error("Compression failed");
+  }
+
+  return blob; // Return best effort, even if slightly over 100KB
+}

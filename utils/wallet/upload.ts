@@ -6,6 +6,7 @@ export default async function upload(data: DataItem) {
       method: "POST",
       headers: {
         "Content-Type": "application/octet-stream",
+        "accept": "application/json",
       },
       body: Buffer.from(data.getRaw()),
     });
