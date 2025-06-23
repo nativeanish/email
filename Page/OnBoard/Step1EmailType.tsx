@@ -1,7 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import useAddress from "../../store/useAddress";
 import Arweave from "../../Image/Arweave";
 import Ario from "../../Image/Ario";
 import useOnboard from "../../store/useOnboard";
@@ -11,14 +10,17 @@ import { showDanger } from "../../Components/UI/Toast/Toast-Context";
 import { get_wallet_ario, set_details } from "../../utils/arns";
 import Dialog from "../../Components/UI/Dialog";
 import useLoading from "../../store/useLoading";
+import { useWalletStore } from "../../store/useWallet";
+import WalletModal from "../../Components/WalletModal";
 
 interface Step1Props {
   onNext: (type: "arns" | "wallet") => void;
 }
 
 export default function Step1EmailType({ onNext }: Step1Props) {
-  const { address, walletType } = useAddress();
+  const {address, connectedWallet, isConnected, checkConnection} = useWalletStore()
   const { arns_name, process_id, set_type, type, arns, image } = useOnboard();
+  const [show, setShow] = useState(false);
   const route = useNavigate();
   const {
     open,
@@ -29,6 +31,12 @@ export default function Step1EmailType({ onNext }: Step1Props) {
     setShowCloseButton,
     close,
   } = useLoading();
+  useEffect(() => {
+    checkConnection()
+   if(!isConnected || !address || address.length === 0 || !connectedWallet || connectedWallet.length === 0) {
+     setShow(true) 
+    }
+  },[address, connectedWallet, isConnected])
   useEffect(() => {
     async function _check_user(address: string) {
       setTitle("Checking User Status") 
@@ -95,7 +103,8 @@ export default function Step1EmailType({ onNext }: Step1Props) {
       close();
       return true;
     }
-    if (address && address.length > 0 && walletType && walletType.length > 0) {
+    if (address && address.length > 0 && isConnected && connectedWallet && connectedWallet.length > 0) {
+      setShow(false)
       _check_user(address)
         .then(() => close())
         .catch((err) => {
@@ -103,7 +112,7 @@ export default function Step1EmailType({ onNext }: Step1Props) {
           close();
         });
     }
-  }, []);
+  }, [address, isConnected, connectedWallet, arns_name, arns, process_id, route, open, close, setTitle, setDescription, setDarkMode, setSize, setShowCloseButton]);
   return (
     <>
       <motion.div
@@ -274,6 +283,7 @@ export default function Step1EmailType({ onNext }: Step1Props) {
         </motion.button>
       </motion.div>
       <Dialog />
+      <WalletModal isOpen={show} onClose={() => setShow(false)} closable={false} showCloseButton={false} closeOnBackdropClick={false}/>
     </>
   );
 }

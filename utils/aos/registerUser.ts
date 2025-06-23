@@ -46,11 +46,13 @@ export default async function registerUser(privateKey: string): Promise<boolean>
         return false;
       }
       const image_buffer = await blob.arrayBuffer();
+      console.log("Image buffer size:", image_buffer.byteLength);
       const sig = await sign(new Uint8Array(image_buffer), mimeType);
       if (!sig) {
         showDanger("Signing failed", "Could not sign the image.", 5000);
         return false;
       }
+      console.log("Image signed successfully:", sig);
       const id = await upload(sig);
       if (id) {
         console.log("Image uploaded successfully:", id);

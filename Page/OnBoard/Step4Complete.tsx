@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { CheckCircle, ArrowRight } from "lucide-react"
-import useAddress from "../../store/useAddress"
 import { useNavigate } from "react-router-dom"
 import useOnboard from "../../store/useOnboard"
+import { useWalletStore } from "../../store/useWallet"
 
 export default function Step4Complete() {
   const { type: emailType, name, image, image_type } = useOnboard()
-  const { address, walletType } = useAddress()
+  const { address, connectedWallet:walletType } = useWalletStore()
   const navigate = useNavigate()
   const [emailAddress, setEmailAddress] = useState("")
   useEffect(() => {

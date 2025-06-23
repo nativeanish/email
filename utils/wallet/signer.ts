@@ -69,5 +69,5 @@ export const get_metamask_signer = () => {
   const provider = {
     getSigner: () => _signer,
   };
-  return new InjectedEthereumSigner(provider);
+  return provider;
 };

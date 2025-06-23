@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown, Unplug, User } from 'lucide-react'
+import useTheme from "../../store/useTheme"
+import useBreakpoint from "../../hooks/useBreakpoint"
+import { useWalletStore } from "../../store/useWallet"
+import { WalletType } from "../../types/wallet"
 import Metamask from "../../Image/Metamask"
 import Wander from "../../Image/Wander"
-import Arweave from "../../Image/Arweave"
-import useTheme from "../../store/useTheme"
-import { disconnect, wander, metamask, arweave, autoconnect } from "../../utils/wallet"
-import useAddress, { WalletType } from "../../store/useAddress"
-import useBreakpoint from "../../hooks/useBreakpoint"
 export default function ConnectButton() {
   const size = useBreakpoint()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedWallet, setSelectedWallet] = useState<WalletType>()
   const { theme: _theme } = useTheme()
-  const { address, walletType } = useAddress()
   const theme = _theme === "dark" ? "light" : "dark"
+  const {address, connectedWallet: walletType, connectWallet, disconnectWallet, checkConnection} = useWalletStore()
 
   useEffect(() => {
     if (walletType === null) {
-      setSelectedWallet("Wander")
+      setSelectedWallet("wander")
     } else {
       setSelectedWallet(walletType as WalletType)
     }
@@ -44,17 +43,11 @@ export default function ConnectButton() {
   }
 
   const handleConnect = () => {
-    if (selectedWallet === "Wander") {
-      wander().then((e) => {
-        alert(e)
-      })
+    if (selectedWallet === "wander") {
+      connectWallet("wander").then(console.log).catch(console.log)
     }
-    if (selectedWallet === "Metamask") {
-      metamask().then(console.log).catch(console.log)
-    }
-
-    if (selectedWallet === "Arweave.app") {
-      arweave().then(console.log).catch(console.log)
+    if (selectedWallet === "ethereum") {
+      connectWallet("ethereum").then(console.log).catch(console.log)
     }
   }
 
@@ -69,11 +62,11 @@ export default function ConnectButton() {
   }
 
   const _disconnect = () => {
-    disconnect().then(console.log).catch(console.log)
+    disconnectWallet()
   }
 
   useEffect(() => {
-    autoconnect()
+    checkConnection()
   }, [])
 
   return (
@@ -109,19 +102,14 @@ export default function ConnectButton() {
           onClick={toggleDropdown}
         >
           {/* Selected wallet logo */}
-          {selectedWallet === "Metamask" && (
+          {selectedWallet === "ethereum" && (
             <div className={`${iconSize[size]} rounded-full bg-transparent flex items-center justify-center`}>
               <Metamask />
             </div>
           )}
-          {selectedWallet === "Wander" && (
+          {selectedWallet === "wander" && (
             <div className={`${iconSize[size]} rounded-full bg-transparent flex items-center justify-center`}>
               <Wander />
-            </div>
-          )}
-          {selectedWallet === "Arweave.app" && (
-            <div className={`${iconSize[size]} rounded-full bg-transparent flex items-center justify-center`}>
-              <Arweave theme="dark" />
             </div>
           )}
           <motion.div initial={{ rotate: 0 }} animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
@@ -159,7 +147,7 @@ export default function ConnectButton() {
             ) : (
               <div className="py-1">
                 <button
-                  onClick={() => selectWallet("Metamask")}
+                  onClick={() => selectWallet("ethereum")}
                   className={`flex items-center px-3 py-2 text-xs ${theme === "dark"
                     ? "text-gray-200 hover:bg-gray-700"
                     : theme === "light"
@@ -170,10 +158,10 @@ export default function ConnectButton() {
                   <div className="h-5 w-5 rounded-full bg-transparent flex items-center justify-center mr-2">
                     <Metamask />
                   </div>
-                  Metamask
+                  ethereum
                 </button>
                 <button
-                  onClick={() => selectWallet("Wander")}
+                  onClick={() => selectWallet("wander")}
                   className={`flex items-center px-3 py-2 text-xs ${theme === "dark"
                     ? "text-gray-200 hover:bg-gray-700"
                     : theme === "light"
@@ -184,22 +172,9 @@ export default function ConnectButton() {
                   <div className="h-5 w-5 rounded-full bg-transparent flex items-center justify-center mr-2">
                     <Wander />
                   </div>
-                  Wander
+                  wander
                 </button>
-                <button
-                  onClick={() => selectWallet("Arweave.app")}
-                  className={`flex items-center px-3 py-2 text-xs ${theme === "dark"
-                    ? "text-gray-200 hover:bg-gray-700"
-                    : theme === "light"
-                      ? "text-gray-700 hover:bg-gray-100"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                    } w-full text-left focus:outline-none`}
-                >
-                  <div className="h-5 w-5 rounded-full bg-transparent flex items-center justify-center mr-2">
-                    <Arweave theme={theme} />
-                  </div>
-                  Arweave.app
-                </button>
+                
               </div>
             )}
           </motion.div>

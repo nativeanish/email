@@ -1,7 +1,7 @@
 import { ario_cu, main_ario_cu } from "./constants";
 import useOnboard from "../store/useOnboard";
-import useAddress from "../store/useAddress";
 import { showDanger } from "../Components/UI/Toast/Toast-Context";
+import { useWalletStore } from "../store/useWallet";
 export async function get_wallet_ario(address: string) {
   try {
     const result = await fetch(main_ario_cu, {
@@ -89,7 +89,7 @@ export async function set_details(process_id: string) {
       }),
     });
     const response = JSON.parse((await prom.json()).Messages[0].Data);
-    if (response.Owner !== useAddress.getState().address) {
+    if (response.Owner !== useWalletStore.getState().address) {
       showDanger(
         "Error in ARIO data",
         "You are not the owner of this ARIO process.",

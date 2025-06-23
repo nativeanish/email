@@ -8,6 +8,7 @@ function Metamask() {
       y="0"
       version="1.1"
       viewBox="0 0 142 136.878"
+      className="w-8 h-8"
     >
       <path
         fill="#FF5C16"
@@ -35,7 +36,7 @@ function Metamask() {
         d="m39.875 123.072 23.083 13.8v-12.495l-2.067-7.566zm62.238 0-23.084 13.8v-12.495l2.067-7.566z"
       ></path>
     </svg>
-
   )
 }
-export default Metamask;
+
+export default Metamask

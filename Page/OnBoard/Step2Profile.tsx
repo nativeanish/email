@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { ChevronRight, ArrowLeft, User, Upload, RefreshCw } from "lucide-react";
 import useOnboard from "../../store/useOnboard";
 import { set_details } from "../../utils/arns";
-import useAddress from "../../store/useAddress";
 import { showDanger, useToast } from "../../Components/UI/Toast/Toast-Context";
+import { useWalletStore } from "../../store/useWallet";
 interface Step2Props {
   onNext: () => void;
   onBack: () => void;
@@ -28,7 +28,7 @@ export default function Step2Profile({ onNext, onBack }: Step2Props) {
 
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
-  const { address } = useAddress();
+  const { address } = useWalletStore();
   const { process_id } = useOnboard();
   useEffect(() => {
     if (type === "wallet" && address && address.length > 0) {

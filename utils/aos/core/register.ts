@@ -1,44 +1,93 @@
-import { ArconnectSigner, InjectedEthereumSigner } from "@ar.io/arbundles";
-import useAddress from "../../../store/useAddress";
-import { showDanger } from "../../../Components/UI/Toast/Toast-Context";
+import { InjectedEthereumSigner, createData } from "@ar.io/arbundles";
 import { createDataItemSigner, message, result } from "@permaweb/aoconnect";
 import { process } from "../../constants";
-import { get_metamask_signer, get_wander_signer } from "../../wallet/signer";
+import { useWalletStore } from "../../../store/useWallet";
+import { get_metamask_signer } from "../../wallet/signer";
+import { showDanger } from "../../../Components/UI/Toast/Toast-Context";
 export default async function register(
   tags: { name: string; value: string }[]
 ) {
-  const wallet = useAddress.getState().walletType;
-  let signer: ArconnectSigner | InjectedEthereumSigner | undefined = undefined;
-  if (wallet === "Wander") {
-    signer = get_wander_signer();
+  const walletType = useWalletStore.getState().connectedWallet;
+  let signer: any;
+  if (walletType === "wander") {
+    signer = createDataItemSigner(window.arweaveWallet);
   }
-  if (wallet === "Metamask") {
-    signer = get_metamask_signer();
+  if (walletType === "ethereum") {
+    signer = createBrowserEthereumDataItemSignerWithoutEthers();
   }
-  if (signer) {
-    console.log("Signer initialized:", signer);
-    const formatted = Object.fromEntries(
-      tags.map(({ name, value }) => [name, value])
-    );
+  const msg = await message({
+    process: process,
+    signer: signer,
+    tags,
+  });
+  const res = await result({
+    process,
+    message: msg,
+  });
+  return res;
+}
 
-    const jsonPayload = JSON.stringify(formatted);
-    console.log("JSON Payload:", jsonPayload);
-    const msg = await message({
-      process: process,
-      signer: createDataItemSigner(window.arweaveWallet),
-      tags,
-    });
-    const res = await result({
-      process,
-      message: msg,
-    });
-    return res;
-  } else {
+export function createBrowserEthereumDataItemSignerWithoutEthers() {
+  if (!window.ethereum) {
     showDanger(
-      "Failed to initialize wallet",
-      "Please ensure your wallet is connected and try again.",
+      "Ethereum Provider Not Found",
+      "Please install MetaMask or another Ethereum provider to sign messages.",
       6000
     );
-    return false;
+    throw new Error("Ethereum provider is not available.");
+  }
+  try {
+    const eth = get_metamask_signer();
+    const signer = async ({ data, tags, target, anchor }: any) => {
+      const provider = {
+        getSigner: () => ({
+          signMessage: async (message: string) => {
+            return await eth?.getSigner().signMessage(message);
+          },
+        }),
+      };
+      const ethSigner = new InjectedEthereumSigner(provider as any);
+      await ethSigner.setPublicKey();
+      const dataItem = createData(data, ethSigner, {
+        tags,
+        target,
+        anchor,
+      });
+      const res = await dataItem
+        .sign(ethSigner)
+        .then(async () => ({
+          id: await dataItem.id,
+          raw: await dataItem.getRaw(),
+        }))
+        .catch((e) => {
+          console.error(e);
+          return null; // Handle errors gracefully
+        });
+      console.dir(
+        {
+          valid: await InjectedEthereumSigner.verify(
+            ethSigner.publicKey,
+            await dataItem.getSignatureData(),
+            dataItem.rawSignature
+          ),
+          signature: dataItem.signature,
+          owner: dataItem.owner,
+          tags: dataItem.tags,
+          id: dataItem.id,
+          res,
+        },
+        { depth: 2 }
+      );
+
+      return res;
+    };
+    return signer;
+  } catch (error) {
+    console.error("Error creating Ethereum data item signer:", error);
+    showDanger(
+      "Signer Creation Failed",
+      "Failed to create Ethereum data item signer. Please check your connection.",
+      6000
+    );
   }
 }

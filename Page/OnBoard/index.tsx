@@ -1,40 +1,23 @@
 import { useState, useEffect } from "react";
 import { Lock, User, Key, CheckCircle } from "lucide-react";
-import useAddress from "../../store/useAddress";
 import OnboardLayout from "./OnBoardLayout";
 import Step1EmailType from "./Step1EmailType";
 import Step2Profile from "./Step2Profile";
 import Step3Keys from "./Step3Keys";
 import Step4Complete from "./Step4Complete";
-import { useNavigate } from "react-router-dom";
-import { autoconnect, metamask } from "../../utils/wallet";
+import { useWalletStore } from "../../store/useWallet";
 
 export default function OnBoard() {
   const [currentStep, setCurrentStep] = useState(1);
-  const { address, walletType } = useAddress();
-  const navigate = useNavigate();
+  const { address, connectedWallet } = useWalletStore();
   // Check if user is authenticated
   useEffect(() => {
     // If we're not on step 1 and there's no wallet connected, go back to step 1
-    if (currentStep > 1 && (!address || !walletType)) {
+    if (currentStep > 1 && (!address || !connectedWallet)) {
       setCurrentStep(1);
     }
-  }, [address, walletType, currentStep]);
+  }, [address, connectedWallet, currentStep]);
 
-  useEffect(() => {
-    const run = async () => {
-      await autoconnect();
-      console.log("Metamask check completed", address, walletType);
-      if (
-        !(address && address.length > 0 && walletType && walletType.length > 0)
-      ) {
-        navigate("/login");
-      }else{
-
-      }
-    };
-    run();
-  }, [address, walletType]);
 
   // Step 1 completion handler
   const handleStep1Complete = () => {

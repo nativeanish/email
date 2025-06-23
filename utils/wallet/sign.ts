@@ -3,8 +3,8 @@ import {
   createData,
   InjectedEthereumSigner,
 } from "@ar.io/arbundles";
-import useAddress from "../../store/useAddress";
 import { showDanger } from "../../Components/UI/Toast/Toast-Context";
+import { useWalletStore } from "../../store/useWallet";
 export async function sign_wander(
   message: string | Uint8Array,
   mime: string = "application/json"
@@ -116,11 +116,11 @@ export default async function sign(
   message: Uint8Array | string,
   mime: string = "application/json"
 ) {
-  const wallet = useAddress.getState().walletType;
-  if (wallet === "Wander") {
+  const wallet = useWalletStore.getState().connectedWallet;
+  if (wallet === "wander") {
     return await sign_wander(message, mime);
   }
-  if (wallet === "Metamask") {
+  if (wallet === "ethereum") {
     return await sign_ethereum(message, mime);
   }
 }

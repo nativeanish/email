@@ -1,11 +1,11 @@
-import useAddress from "../../store/useAddress";
 import { encrypt as metamask_encrypt } from "@metamask/eth-sig-util";
 // import wallet from "../arweave";
 import { sign_wander, sign_ethereum } from "./sign";
 import upload from "./upload";
 import { showDanger } from "../../Components/UI/Toast/Toast-Context";
+import { useWalletStore } from "../../store/useWallet";
 export async function getPublicKey() {
-  const address = useAddress.getState().address;
+  const address = useWalletStore.getState().address;
   if (window.ethereum === undefined || !address) {
     showDanger(
       "Public Key Not Found",
@@ -111,8 +111,8 @@ async function encrypt_wander(text: string) {
 // }
 export default async function encrypt(text: string) {
   try {
-    const walletType = useAddress.getState().walletType;
-    if (walletType && walletType === "Metamask") {
+    const walletType = useWalletStore.getState().connectedWallet;
+    if (walletType && walletType === "ethereum") {
       const encrypted_data = await encrypt_metamask(text);
       if (!encrypted_data) {
         showDanger(
@@ -148,7 +148,7 @@ export default async function encrypt(text: string) {
       }
       return uploadResult;
     }
-    if (walletType && walletType === "Wander") {
+    if (walletType && walletType === "wander") {
       const encrypted_data = await encrypt_wander(text);
       if (!encrypted_data) {
         console.error("Encryption failed for Wander");

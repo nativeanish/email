@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import ConnectButton from "../../Components/ConnectButton";
-import useAddress from "../../store/useAddress";
 import { check_user } from "../../utils/ao";
 import useUser from "../../store/useUser";
 import { Link } from "react-router-dom";
+import { useWalletStore } from "../../store/useWallet";
 function Index() {
-  const { address, walletType } = useAddress();
+  const { address, connectedWallet:walletType } = useWalletStore();
   const { user } = useUser();
   const [isRegister, setisRegister] = useState<boolean>(false);
   useEffect(() => {

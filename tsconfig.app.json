@@ -32,6 +32,7 @@
     "apps",
     "hooks",
     "Image",
-    "utils"
+    "utils",
+    "lib"
   ]
 }
