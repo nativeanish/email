@@ -26,7 +26,7 @@
     "@lexical/list": "^0.30.0",
     "@lexical/react": "^0.30.0",
     "@lexical/rich-text": "^0.30.0",
-    "@lexical/selection": "^0.32.0",
+    "@lexical/selection": "0.30.0",
     "@lexical/utils": "^0.30.0",
     "@metamask/eth-sig-util": "^8.2.0",
     "@metamask/providers": "^22.1.0",

@@ -47,30 +47,16 @@ function App() {
       }
     }
   },[isConnected, address, walletType])
-  useEffect(() => {
-    console.log(user?.address, "user address")
-    console.log(user?.username, "user username")
-    console.log(user?.image, "user image")
-    console.log(user?.bio, "user bio")
-    console.log(user?.privateKey, "user privateKey")
-    console.log(user?.publicKey, "user publicKey")
-    console.log(user?.registeredDate, "user registeredDate")
-    console.log(user?.isArns, "user isArns")
-    console.log(user?.sent, "user sent")
-    console.log(user?.received, "user received")
-    console.log(user?.sendBoxnumber, "user sendBoxnumber")
-    console.log(user?.receiveBoxnumber, "user receiveBoxnumber")   
-  },[user])
 
   return (
     <div className={`flex h-screen ${theme ? "dark" : ""}`}>
-      <Sidebar name={user?.username} image={user?.image} />
+      <Sidebar name={user?.username} image={user?.image} bio={user?.bio} />
 
       <div className="flex-1 flex flex-col h-full">
         <Header />
         <div
           className={`flex-1 flex md:flex-row flex-col ${
-            theme === "dark" ? "bg-black" : "bg-gray-50"
+            theme === "dark" ? "bg-[#141414]" : "bg-gray-50"
           }`}
         >
           <EmailList

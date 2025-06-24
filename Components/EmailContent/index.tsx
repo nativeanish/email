@@ -29,7 +29,7 @@ export function EmailContent({
   return (
     <div
       className={`${!isEmailListVisible ? "block" : "hidden"
-        } md:block flex-1 p-4 md:p-6 ${isDarkMode ? "bg-black" : "bg-white"}`}
+        } md:block flex-1 p-4 md:p-6 ${isDarkMode ? "bg-[#141414]" : "bg-white"}`}
     >
       {isNewMessageOpen ? (
         <NewMessage isDarkMode={isDarkMode} />

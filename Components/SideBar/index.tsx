@@ -1,41 +1,84 @@
+"use client";
+
 import {
-  Box,
   Mail,
   Send,
   File,
   Archive,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
+  Trash2,
+  Plus,
+  Tag,
+  Star,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import useTheme from "../../store/useTheme";
 import useSideBar from "../../store/useSideBar";
-import { useEffect, useState } from "react";
 import WalletModal from "../WalletModal";
+import useMessage from "../../store/useMessage";
 
-export function Sidebar({ name, image }: { name?: string; image?: string }) {
+export function Sidebar({
+  name,
+  image,
+  bio,
+}: {
+  name?: string;
+  image?: string;
+  bio?: string;
+}) {
+  // Use original Zustand stores
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const isSidebarOpen = useSideBar((state) => state.isOpen);
   const setSidebar = useSideBar((state) => state.change);
-  const isSidebarCollapsed = isSidebarOpen ? true : false;
-  const [showWalletModal, setShowWalletModal] = useState(false)
+  const isCollapsed = isSidebarOpen ? true : false;
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const { show, setShow } = useMessage();
+
   const setIsSidebarOpen = (open: boolean) => {
     setSidebar(open);
   };
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
 
-  useEffect(() => {
+  const mainNavItems = [
+    { icon: Mail, label: "Inbox", active: true, count: 12 },
+    { icon: Send, label: "Sent" },
+    { icon: File, label: "Draft", count: 3 },
+    { icon: Archive, label: "All Mails" },
+    { icon: Trash2, label: "Bin" },
+    { icon: AlertTriangle, label: "Spam", count: 2 },
+  ];
 
-  },[])
+  const customLabels = [
+    {
+      icon: Star,
+      label: "Important",
+      color: isDarkMode ? "text-amber-400" : "text-amber-500",
+    },
+    {
+      icon: Tag,
+      label: "Work",
+      color: isDarkMode ? "text-cyan-400" : "text-cyan-500",
+    },
+    {
+      icon: Tag,
+      label: "Personal",
+      color: isDarkMode ? "text-emerald-400" : "text-emerald-500",
+    },
+    {
+      icon: Tag,
+      label: "Finance",
+      color: isDarkMode ? "text-violet-400" : "text-violet-500",
+    },
+  ];
+
+  const sidebarWidth = isCollapsed ? "w-20" : "w-64";
+
   return (
     <>
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -44,132 +87,278 @@ export function Sidebar({ name, image }: { name?: string; image?: string }) {
       <div
         className={`fixed md:static inset-y-0 left-0 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transition-all duration-300 ease-in-out z-50 ${
-          isSidebarCollapsed ? "w-20" : "w-64"
-        } ${
-          isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"
-        } border-r`}
+        } md:translate-x-0 transition-all duration-300 ease-in-out z-50 ${sidebarWidth} ${
+          isDarkMode
+            ? "bg-[#1a1a1a] border-gray-800"
+            : "bg-white border-gray-200"
+        } border-r flex flex-col font-mono`}
       >
-        <div className="flex items-center justify-between p-4">
+        {/* Header Section */}
+        <div
+          className={`${isCollapsed ? "p-3" : "p-4"} ${
+            isDarkMode ? "border-b border-gray-800" : "border-b border-gray-200"
+          }`}
+        >
+          {/* Collapse Toggle & Mobile Close */}
+          <div className="flex justify-between items-center mb-4">
+            <button
+              className={`md:hidden transition-colors ${
+                isDarkMode
+                  ? "text-gray-400 hover:text-gray-300"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* User Profile */}
+          {isCollapsed ? (
+            // Collapsed Profile
+            <div className="flex flex-col items-center space-y-4">
+              <button
+                className="group relative"
+                onClick={() => setShowWalletModal(true)}
+                title={name || "nativeanish"}
+              >
+                <img
+                  src={
+                    image
+                      ? `https://arweave.net/${image}`
+                      : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                  }
+                  alt="Profile"
+                  className={`h-12 w-12 rounded-full ring-2 transition-all ${
+                    isDarkMode
+                      ? "ring-slate-600 group-hover:ring-slate-500"
+                      : "ring-gray-300 group-hover:ring-gray-400"
+                  }`}
+                />
+              </button>
+
+              {/* Collapsed New Mail Button */}
+              <button
+                className={`w-12 h-12 text-white rounded-xl transition-colors flex items-center justify-center shadow-lg hover:shadow-xl ${
+                  isDarkMode
+                    ? "bg-slate-700 hover:bg-slate-600"
+                    : "bg-slate-800 hover:bg-slate-700"
+                }`}
+                title="New Mail"
+                onClick={() => {
+                  setShow(!show);
+                }}
+              >
+                <Plus className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            // Expanded Profile
+            <div>
+              <div
+                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                  isDarkMode
+                    ? "bg-gray-900 hover:bg-gray-800"
+                    : "bg-slate-800 hover:bg-slate-700"
+                }`}
+                onClick={() => setShowWalletModal(true)}
+              >
+                <img
+                  src={
+                    image
+                      ? `https://arweave.net/${image}`
+                      : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                  }
+                  alt="Profile"
+                  className={`h-10 w-10 rounded-full ring-2 flex-shrink-0 ${
+                    isDarkMode ? "ring-slate-600" : "ring-gray-300"
+                  }`}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate text-white">
+                    {name || "nativeanish"}
+                  </p>
+                  <p className="text-xs text-gray-300 truncate">
+                    {name ? `${name}@perma.email` : "nativeanish@perma.email"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Expanded New Mail Button */}
+              <button
+                className={`w-full mt-3 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${
+                  isDarkMode
+                    ? "bg-slate-700 hover:bg-slate-600"
+                    : "bg-slate-800 hover:bg-slate-700"
+                }`}
+                onClick={() => {
+                  setShow(!show);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                New Mail
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Main Navigation */}
+          <div className={`${isCollapsed ? "p-2" : "p-4"}`}>
+            <nav className={`space-y-2 ${isCollapsed ? "space-y-3" : ""}`}>
+              {mainNavItems.map((item) => (
+                <button
+                  key={item.label}
+                  className={`group relative flex items-center w-full rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isCollapsed
+                      ? "h-12 justify-center hover:scale-105"
+                      : "px-3 py-2.5 justify-between"
+                  } ${
+                    item.active
+                      ? isDarkMode
+                        ? "bg-slate-700 text-white shadow-lg border border-slate-600"
+                        : "bg-slate-800 text-white shadow-lg"
+                      : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <div
+                    className={`flex items-center ${
+                      isCollapsed ? "justify-center" : "gap-3"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </div>
+
+                  {/* Count Badge */}
+                  {!isCollapsed && item.count && (
+                    <span
+                      className={`px-2 py-0.5 text-xs rounded-full ${
+                        item.active
+                          ? isDarkMode
+                            ? "bg-slate-600 text-gray-200"
+                            : "bg-slate-700 text-gray-200"
+                          : isDarkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {item.count}
+                    </span>
+                  )}
+
+                  {/* Collapsed Count Indicator */}
+                  {isCollapsed && item.count && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {item.count > 9 ? "9+" : item.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Custom Labels Section */}
+          <div className={`${isCollapsed ? "px-2 pb-4" : "px-4 pb-4"}`}>
+            {!isCollapsed && (
+              <div className="mb-3 flex items-center justify-between">
+                <h3
+                  className={`text-xs font-semibold uppercase tracking-wider ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  Labels
+                </h3>
+                <button
+                  className={`p-1 rounded transition-colors ${
+                    isDarkMode
+                      ? "hover:bg-gray-800 text-gray-400"
+                      : "hover:bg-gray-100 text-gray-500"
+                  }`}
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            <nav className={`space-y-2 ${isCollapsed ? "space-y-3" : ""}`}>
+              {customLabels.map((item) => (
+                <button
+                  key={item.label}
+                  title={isCollapsed ? item.label : undefined}
+                  className={`group flex items-center w-full rounded-lg text-sm transition-all duration-200 ${
+                    isCollapsed
+                      ? "h-10 justify-center hover:scale-105"
+                      : "gap-3 px-3 py-2"
+                  } ${
+                    isDarkMode
+                      ? "text-gray-300 hover:bg-gray-800 hover:text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <item.icon
+                    className={`h-4 w-4 ${item.color} ${
+                      isCollapsed ? "group-hover:scale-110" : ""
+                    } transition-transform`}
+                  />
+                  {!isCollapsed && <span>{item.label}</span>}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Footer Section */}
+        <div
+          className={`${isCollapsed ? "p-3" : "p-4"} ${
+            isDarkMode ? "border-t border-gray-800" : "border-t border-gray-200"
+          }`}
+        >
+          {/* Permaemail Branding */}
           <div
-            className={`flex items-center gap-2 ${
-              isSidebarCollapsed ? "justify-center w-full" : ""
+            className={`flex items-center gap-2 mb-4 ${
+              isCollapsed ? "justify-center" : "justify-center"
             }`}
           >
-            <Box className="text-blue-8000 h-7 w-7" />
-            {!isSidebarCollapsed && (
+            <Mail
+              className={`h-5 w-5 ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            />
+            {!isCollapsed && (
               <span
-                className={`font-semibold text-lg ${
-                  isDarkMode ? "text-white" : "text-gray-900"
+                className={`text-sm font-medium ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
                 }`}
               >
-                Cusana
+                Permaemail
               </span>
             )}
           </div>
-          <button
-            className="md:hidden text-gray-400"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X className="h-6 w-6" />
-          </button>
         </div>
-
-        <nav className="p-4 space-y-2">
-          {[
-            { icon: Mail, label: "Inbox", active: true },
-            { icon: Send, label: "Sent" },
-            { icon: File, label: "Draft" },
-            { icon: Archive, label: "All Mails" },
-            { icon: AlertTriangle, label: "Spam" },
-          ].map((item) => (
-            <button
-              key={item.label}
-              className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg ${
-                item.active
-                  ? "bg-blue-900/50 text-white"
-                  : isDarkMode
-                  ? "text-gray-300 hover:bg-gray-800"
-                  : "text-gray-600 hover:bg-gray-100"
-              } ${isSidebarCollapsed ? "justify-center" : ""}`}
-            >
-              <item.icon
-                className={`${isSidebarCollapsed ? "h-5 w-5" : "h-5 w-5"}`}
-              />
-              {!isSidebarCollapsed && <span>{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-
-        <div className="absolute bottom-4 left-0 right-0 px-4 cursor-pointer" onClick={() => setShowWalletModal(true)}>
-          {isSidebarCollapsed ? (
-            <div className="flex justify-center">
-              <img
-                src={
-                  image
-                    ? `https://arweave.net/${image}`
-                    : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                }
-                alt="Profile"
-                className="h-10 w-10 rounded-full ring-2 ring-blue-400 mb-3"
-              />
-            </div>
-          ) : (
-            <div
-              className={`flex items-center gap-3 p-2 rounded-lg ${
-                isDarkMode ? "bg-gray-900" : "bg-gray-100"
-              }`}
-            >
-              <img
-                src={
-                  image
-                    ? `https://arweave.net/${image}`
-                    : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                }
-                alt="Profile"
-                className="h-10 w-10 rounded-full"
-              />
-              <div className="flex-1">
-                <p
-                  className={`font-medium text-sm ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {name || "Sam Williams"}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {name ? (
-                    <>
-                      {`${
-                        name.length > 11 ? name.slice(0, 8) + "..." : name
-                      }@perma.email`}
-                    </>
-                  ) : (
-                    "sam@perma.email"
-                  )}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Collapse Toggle Button */}
-        <button
-          onClick={toggleSidebar}
-          className={`hidden md:flex absolute -right-3 top-1/2 transform -translate-y-1/2 rounded-full p-1 ${
-            isDarkMode
-              ? "bg-gray-900 border-gray-800 text-gray-400 hover:text-white"
-              : "bg-white border-gray-200 text-gray-600 hover:text-gray-900"
-          } border`}
-        >
-          {isSidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
       </div>
-      <WalletModal isOpen={showWalletModal} darkMode={isDarkMode} showCloseButton={true} onClose={() => setShowWalletModal(false)} closeOnBackdropClick={true} closable={true}/>
+
+      <WalletModal
+        profileDetails={{
+          username: name || "nativeanish",
+          email: `${name || "nativeanish"}@perma.email`,
+          photo: image
+            ? `https://arweave.net/${image}`
+            : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+          bio: bio,
+        }}
+        showProfile={true}
+        isOpen={showWalletModal}
+        darkMode={isDarkMode}
+        showCloseButton={true}
+        onClose={() => setShowWalletModal(false)}
+        closeOnBackdropClick={true}
+        closable={true}
+      />
     </>
   );
 }

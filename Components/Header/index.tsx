@@ -1,4 +1,4 @@
-import { Menu, Plus, Sun, Moon, X } from "lucide-react";
+import { Menu, Plus, Sun, Moon, X, PanelLeftDashed, Bell, RefreshCcw, LogOut } from "lucide-react";
 import useTheme from "../../store/useTheme";
 import useSideBar from "../../store/useSideBar";
 import useMessage from "../../store/useMessage";
@@ -6,36 +6,40 @@ import useMessage from "../../store/useMessage";
 export function Header() {
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const toggleTheme = useTheme((state) => state.setTheme);
-  const setIsSidebarOpen = useSideBar((state) => state.change);
-  const { show, setShow } = useMessage();
+  const setSidebar = useSideBar((state) => state.change);
+    const isSidebarOpen = useSideBar((state) => state.isOpen);
+  // const { show, setShow } = useMessage();
   return (
     <header
       className={`px-4 py-4 border-b ${
-        isDarkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"
+        isDarkMode ? "bg-[#141414] border-gray-800" : "bg-white border-gray-200"
       }`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
-            className="md:hidden text-gray-400"
-            onClick={() => setIsSidebarOpen(true)}
+            className="text-gray-400"
+            onClick={() => setSidebar(!isSidebarOpen)}
+            aria-label="Toggle Sidebar"
           >
-            <Menu className="h-6 w-6" />
+            <PanelLeftDashed className="h-6 w-6" />
           </button>
-          <h1
-            className={`text-xl font-semibold ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            }`}
-          >
-            Emails
-          </h1>
+          <h2 className="font-semibold text-gray-400">
+            Dashboard
+          </h2>
+          <h2 className="font-semibold text-gray-400">
+           / 
+          </h2>
+        <h2 className={`font-semibold text-gray-400 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+          Inbox 
+          </h2> 
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => toggleTheme()}
             className={`p-2 rounded-lg ${
               isDarkMode
-                ? "text-gray-400 hover:bg-gray-800"
+                ? "text-gray-200 hover:bg-gray-800"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
@@ -47,21 +51,39 @@ export function Header() {
           </button>
           <button
             onClick={() => {
-              setShow(!show);
+              setSidebar(!isSidebarOpen);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+            className={`p-2 rounded-lg ${
+              isDarkMode
+                ? "text-gray-200 hover:bg-gray-800"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
           >
-            {show ? (
-              <>
-                <X className="h-5 w-5" />
-                <span className="hidden sm:inline">Close</span>
-              </>
-            ) : (
-              <>
-                <Plus className="h-5 w-5" />
-                <span className="hidden sm:inline">New Message</span>
-              </>
-            )}
+            <Bell className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => {
+              setSidebar(!isSidebarOpen);
+            }}
+            className={`p-2 rounded-lg ${
+              isDarkMode
+                ? "text-gray-200 hover:bg-gray-800"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <RefreshCcw className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => {
+              setSidebar(!isSidebarOpen);
+            }}
+            className={`p-2 rounded-lg ${
+              isDarkMode
+                ? "text-gray-200 hover:bg-gray-800"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <LogOut className="h-5 w-5" />
           </button>
         </div>
       </div>
