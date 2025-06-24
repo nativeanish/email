@@ -1,5 +1,5 @@
 export type UpdateEntry = {
-    date: string
+    date: number
     log: string
 }
 
@@ -15,11 +15,12 @@ export interface User {
     bio: string
     privateKey: string
     publicKey: string
-    registeredDate: string
+    registeredDate:number 
     isArns: boolean
     sent: number
     received: number
     sendBoxnumber: number
     receiveBoxnumber: number
-    updates: UpdateList
+    updates: Array<UpdateEntry> 
 }
+

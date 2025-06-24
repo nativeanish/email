@@ -11,18 +11,25 @@ import {
 } from "lucide-react";
 import useTheme from "../../store/useTheme";
 import useSideBar from "../../store/useSideBar";
+import { useEffect, useState } from "react";
+import WalletModal from "../WalletModal";
 
-export function Sidebar() {
+export function Sidebar({ name, image }: { name?: string; image?: string }) {
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const isSidebarOpen = useSideBar((state) => state.isOpen);
   const setSidebar = useSideBar((state) => state.change);
   const isSidebarCollapsed = isSidebarOpen ? true : false;
+  const [showWalletModal, setShowWalletModal] = useState(false)
   const setIsSidebarOpen = (open: boolean) => {
     setSidebar(open);
   };
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  useEffect(() => {
+
+  },[])
   return (
     <>
       {/* Mobile Sidebar Overlay */}
@@ -94,11 +101,15 @@ export function Sidebar() {
           ))}
         </nav>
 
-        <div className="absolute bottom-4 left-0 right-0 px-4">
+        <div className="absolute bottom-4 left-0 right-0 px-4 cursor-pointer" onClick={() => setShowWalletModal(true)}>
           {isSidebarCollapsed ? (
             <div className="flex justify-center">
               <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                src={
+                  image
+                    ? `https://arweave.net/${image}`
+                    : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                }
                 alt="Profile"
                 className="h-10 w-10 rounded-full ring-2 ring-blue-400 mb-3"
               />
@@ -110,7 +121,11 @@ export function Sidebar() {
               }`}
             >
               <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                src={
+                  image
+                    ? `https://arweave.net/${image}`
+                    : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                }
                 alt="Profile"
                 className="h-10 w-10 rounded-full"
               />
@@ -120,9 +135,19 @@ export function Sidebar() {
                     isDarkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  John Smith
+                  {name || "Sam Williams"}
                 </p>
-                <p className="text-xs text-gray-400">john@example.com</p>
+                <p className="text-xs text-gray-400">
+                  {name ? (
+                    <>
+                      {`${
+                        name.length > 11 ? name.slice(0, 8) + "..." : name
+                      }@perma.email`}
+                    </>
+                  ) : (
+                    "sam@perma.email"
+                  )}
+                </p>
               </div>
             </div>
           )}
@@ -144,6 +169,7 @@ export function Sidebar() {
           )}
         </button>
       </div>
+      <WalletModal isOpen={showWalletModal} darkMode={isDarkMode} showCloseButton={true} onClose={() => setShowWalletModal(false)} closeOnBackdropClick={true} closable={true}/>
     </>
   );
 }

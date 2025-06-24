@@ -4,15 +4,67 @@ import { Header } from "../../Components/Header";
 import { EmailList } from "../../Components/EmailList";
 import { EmailContent } from "../../Components/EmailContent";
 import useMessage from "../../store/useMessage";
+import { useEffect, useState } from "react";
+import { useWalletStore } from "../../store/useWallet";
+import WalletModal from "../../Components/WalletModal";
+import Dialog from "../../Components/UI/Dialog";
+import useLoading from "../../store/useLoading";
+import { check_user } from "../../utils/ao";
+import { User } from "../../types/user";
+import { showDanger } from "../../Components/UI/Toast/Toast-Context";
+import { useNavigate } from "react-router-dom";
 
 function App() {
   const theme = useTheme((state) => state.theme);
   const isDarkMode = theme === "dark";
+  const [showLogin, setLoginShow] = useState(false);
   const { show } = useMessage();
+  const {address, isConnected, connectedWallet: walletType} = useWalletStore()
+  const dialog = useLoading()
+  const [user, setUser] = useState<null|User>(null)
+  const navigate = useNavigate()
+  useEffect(() => {
+   if(!isConnected || !address || !walletType) {
+      setLoginShow(true);
+    }else{
+      setLoginShow(false);
+      if(isConnected && address && walletType) {
+          dialog.setTitle("Fetching Emails")
+          dialog.setDescription("Please wait while we fetch your emails.");
+          dialog.setDarkMode(isDarkMode);
+          dialog.setSize("md");
+          dialog.open()
+          dialog.setShowCloseButton(false);
+          check_user(address).then((res) => {
+            if(res){
+              setUser(res.data as unknown as User);
+              dialog.close();
+            }else{
+              showDanger("User not found","Please register first.",6000);
+              navigate("/onboard");
+            }
+          })
+      }
+    }
+  },[isConnected, address, walletType])
+  useEffect(() => {
+    console.log(user?.address, "user address")
+    console.log(user?.username, "user username")
+    console.log(user?.image, "user image")
+    console.log(user?.bio, "user bio")
+    console.log(user?.privateKey, "user privateKey")
+    console.log(user?.publicKey, "user publicKey")
+    console.log(user?.registeredDate, "user registeredDate")
+    console.log(user?.isArns, "user isArns")
+    console.log(user?.sent, "user sent")
+    console.log(user?.received, "user received")
+    console.log(user?.sendBoxnumber, "user sendBoxnumber")
+    console.log(user?.receiveBoxnumber, "user receiveBoxnumber")   
+  },[user])
 
   return (
     <div className={`flex h-screen ${theme ? "dark" : ""}`}>
-      <Sidebar />
+      <Sidebar name={user?.username} image={user?.image} />
 
       <div className="flex-1 flex flex-col h-full">
         <Header />
@@ -36,6 +88,8 @@ function App() {
           />
         </div>
       </div>
+      <Dialog />
+      <WalletModal darkMode={isDarkMode} showCloseButton={false} isOpen={showLogin} onClose={() => setLoginShow(false)} closeOnBackdropClick={false} closable={false}/>
     </div>
   );
 }
