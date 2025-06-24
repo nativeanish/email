@@ -103,6 +103,13 @@ export const useWalletStore = create<WalletState>()(
 
             await window.arweaveWallet.connect([
               "ACCESS_ADDRESS",
+              "ACCESS_ALL_ADDRESSES",
+              "ACCESS_ARWEAVE_CONFIG",
+              "ACCESS_PUBLIC_KEY",
+              "DECRYPT",
+              "ENCRYPT",
+              "DISPATCH",
+              "SIGNATURE",
               "SIGN_TRANSACTION",
             ]);
             address = await window.arweaveWallet.getActiveAddress();
@@ -199,7 +206,11 @@ export const useWalletStore = create<WalletState>()(
             }
           }
           const metamaskConnected = localStorage.getItem("metamask");
-          if (typeof window !== "undefined" && window.ethereum && metamaskConnected === "true") {
+          if (
+            typeof window !== "undefined" &&
+            window.ethereum &&
+            metamaskConnected === "true"
+          ) {
             const accounts = (await window.ethereum.request({
               method: "eth_accounts",
             })) as string[] | undefined | null;

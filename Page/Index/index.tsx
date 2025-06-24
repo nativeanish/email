@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import ConnectButton from "../../Components/ConnectButton";
-import { check_user } from "../../utils/ao";
 import useUser from "../../store/useUser";
 import { Link } from "react-router-dom";
 import { useWalletStore } from "../../store/useWallet";
 function Index() {
   const { address, connectedWallet:walletType } = useWalletStore();
   const { user } = useUser();
-  const [isRegister, setisRegister] = useState<boolean>(false);
+  const [isRegister, ] = useState<boolean>(false);
   useEffect(() => {
     // if (address) {
     //   if (user && user.address === address) {

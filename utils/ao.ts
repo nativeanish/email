@@ -17,6 +17,7 @@ export async function check_user(address: string) {
       status: 0 | 1;
       data: string;
     };
+    console.log("check_user result:", msg);
     return msg;
   } catch (e) {
     console.error("Error in check_user:", e);
