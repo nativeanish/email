@@ -63,7 +63,7 @@ export default function Step1EmailType({ onNext }: Step1Props) {
       console.log("Check user result:", result);
       if (result.status === 1) {
         close();
-        route("/inbox");
+        route("/dashboard");
         return;
       }
       setTitle("Checking ARIO registration");

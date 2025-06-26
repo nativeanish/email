@@ -28,7 +28,7 @@ export default function Step4Complete() {
 
   const handleGetStarted = () => {
     // Navigate to inbox
-    navigate("/inbox")
+    navigate("/dashboard")
   }
 
   return (

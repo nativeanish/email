@@ -93,6 +93,7 @@ export default async function registerUser(privateKey: string): Promise<boolean>
         { name: "registerAccount", value: JSON.stringify(tag) },
       ];
       const data = await register(tags);
+      console.log(data)
       if (!data || !data.Messages || !data.Messages[0] || !data.Messages[0].Data) {
         showDanger("Registration failed", "Malformed response from registration.", 5000);
         return false;

@@ -13,6 +13,7 @@ import { check_user } from "../../utils/ao";
 import { User } from "../../types/user";
 import { showDanger } from "../../Components/UI/Toast/Toast-Context";
 import { useNavigate } from "react-router-dom";
+import useNotification from "../../store/useNotification";
 
 function App() {
   const theme = useTheme((state) => state.theme);
@@ -23,6 +24,7 @@ function App() {
   const dialog = useLoading()
   const [user, setUser] = useState<null|User>(null)
   const navigate = useNavigate()
+  const {addNotification} = useNotification()
   useEffect(() => {
    if(!isConnected || !address || !walletType) {
       setLoginShow(true);
@@ -36,8 +38,14 @@ function App() {
           dialog.open()
           dialog.setShowCloseButton(false);
           check_user(address).then((res) => {
-            if(res){
+            if(res && res.data && res.status) {
               setUser(res.data as unknown as User);
+              const ds = res.data as unknown as User;
+              console.log(ds.updates.entries) 
+              if(ds.updates && ds.updates.entries && ds.updates.entries.length > 0) {
+                //@ts-ignore
+                addNotification(ds.updates.entries);
+              }
               dialog.close();
             }else{
               showDanger("User not found","Please register first.",6000);

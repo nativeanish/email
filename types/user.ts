@@ -1,6 +1,8 @@
 export type UpdateEntry = {
     date: number
     log: string
+    seen: boolean
+    id: string
 }
 
 export interface UpdateList {

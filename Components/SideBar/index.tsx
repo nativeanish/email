@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Mail,
   Send,
@@ -17,6 +15,7 @@ import useTheme from "../../store/useTheme";
 import useSideBar from "../../store/useSideBar";
 import WalletModal from "../WalletModal";
 import useMessage from "../../store/useMessage";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export function Sidebar({
   name,
@@ -27,7 +26,6 @@ export function Sidebar({
   image?: string;
   bio?: string;
 }) {
-  // Use original Zustand stores
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const isSidebarOpen = useSideBar((state) => state.isOpen);
   const setSidebar = useSideBar((state) => state.change);
@@ -38,38 +36,40 @@ export function Sidebar({
   const setIsSidebarOpen = (open: boolean) => {
     setSidebar(open);
   };
+const location = useLocation();
+const navigate = useNavigate();
 
-  const mainNavItems = [
-    { icon: Mail, label: "Inbox", active: true, count: 12 },
-    { icon: Send, label: "Sent" },
-    { icon: File, label: "Draft", count: 3 },
-    { icon: Archive, label: "All Mails" },
-    { icon: Trash2, label: "Bin" },
-    { icon: AlertTriangle, label: "Spam", count: 2 },
-  ];
+const mainNavItems = [
+  { icon: Mail, label: "Inbox", path: "/dashboard/inbox", count:5, active: location.pathname === "/dashboard/inbox" },
+  { icon: Send, label: "Sent", path: "/dashboard/sent", count: 89, active: location.pathname === "/dashboard/sent" },
+  { icon: File, label: "Draft", path: "/dashboard/draft", count: 90, active: location.pathname === "/dashboard/draft" },
+  { icon: Archive, label: "All Mails", path: "/dashboard/archive", active: location.pathname === "/dashboard/archive" }, // Add this route if needed
+  { icon: Trash2, label: "Bin", path: "/dashboard/trash", active: location.pathname === "/dashboard/trash" },
+  { icon: AlertTriangle, label: "Spam", path: "/dashboard/spam", active: location.pathname === "/dashboard/spam" },
+];
 
-  const customLabels = [
-    {
-      icon: Star,
-      label: "Important",
-      color: isDarkMode ? "text-amber-400" : "text-amber-500",
-    },
-    {
-      icon: Tag,
-      label: "Work",
-      color: isDarkMode ? "text-cyan-400" : "text-cyan-500",
-    },
-    {
-      icon: Tag,
-      label: "Personal",
-      color: isDarkMode ? "text-emerald-400" : "text-emerald-500",
-    },
-    {
-      icon: Tag,
-      label: "Finance",
-      color: isDarkMode ? "text-violet-400" : "text-violet-500",
-    },
-  ];
+  // const customLabels = [
+  //   {
+  //     icon: Star,
+  //     label: "Important",
+  //     color: isDarkMode ? "text-amber-400" : "text-amber-500",
+  //   },
+  //   {
+  //     icon: Tag,
+  //     label: "Work",
+  //     color: isDarkMode ? "text-cyan-400" : "text-cyan-500",
+  //   },
+  //   {
+  //     icon: Tag,
+  //     label: "Personal",
+  //     color: isDarkMode ? "text-emerald-400" : "text-emerald-500",
+  //   },
+  //   {
+  //     icon: Tag,
+  //     label: "Finance",
+  //     color: isDarkMode ? "text-violet-400" : "text-violet-500",
+  //   },
+  // ]
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64";
 
@@ -100,7 +100,7 @@ export function Sidebar({
           }`}
         >
           {/* Collapse Toggle & Mobile Close */}
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-center items-center mb-4">
             <button
               className={`md:hidden transition-colors ${
                 isDarkMode
@@ -138,19 +138,37 @@ export function Sidebar({
               </button>
 
               {/* Collapsed New Mail Button */}
-              <button
-                className={`w-12 h-12 text-white rounded-xl transition-colors flex items-center justify-center shadow-lg hover:shadow-xl ${
-                  isDarkMode
-                    ? "bg-slate-700 hover:bg-slate-600"
-                    : "bg-slate-800 hover:bg-slate-700"
-                }`}
-                title="New Mail"
-                onClick={() => {
-                  setShow(!show);
-                }}
-              >
-                <Plus className="h-5 w-5" />
-              </button>
+              {show ? (
+                <>
+                  <button
+                    className={`w-12 h-12 text-white rounded-xl transition-colors flex items-center justify-center shadow-lg hover:shadow-xl ${
+                      isDarkMode
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-slate-800 hover:bg-slate-700"
+                    }`}
+                    title="New Mail"
+                    onClick={() => {
+                      setShow(!show);
+                    }}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </>
+              ) : (
+                <button
+                  className={`w-12 h-12 text-white rounded-xl transition-colors flex items-center justify-center shadow-lg hover:shadow-xl ${
+                    isDarkMode
+                      ? "bg-slate-700 hover:bg-slate-600"
+                      : "bg-slate-800 hover:bg-slate-700"
+                  }`}
+                  title="New Mail"
+                  onClick={() => {
+                    setShow(!show);
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              )}
             </div>
           ) : (
             // Expanded Profile
@@ -185,38 +203,66 @@ export function Sidebar({
               </div>
 
               {/* Expanded New Mail Button */}
-              <button
-                className={`w-full mt-3 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${
-                  isDarkMode
-                    ? "bg-slate-700 hover:bg-slate-600"
-                    : "bg-slate-800 hover:bg-slate-700"
-                }`}
-                onClick={() => {
-                  setShow(!show);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                New Mail
-              </button>
+              {show ? (
+                <>
+                  <button
+                    className={`w-full mt-3 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${
+                      isDarkMode
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-slate-800 hover:bg-slate-700"
+                    }`}
+                    onClick={() => {
+                      setShow(!show);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    Close Compose
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className={`w-full mt-3 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${
+                      isDarkMode
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-slate-800 hover:bg-slate-700"
+                    }`}
+                    onClick={() => {
+                      setShow(!show);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Compose
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
 
         {/* Navigation Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto mt-2">
           {/* Main Navigation */}
           <div className={`${isCollapsed ? "p-2" : "p-4"}`}>
-            <nav className={`space-y-2 ${isCollapsed ? "space-y-3" : ""}`}>
+            <nav
+              className={`space-y-2 ${
+                isCollapsed ? "space-y-3 flex flex-col items-center" : ""
+              }`}
+            >
               {mainNavItems.map((item) => (
                 <button
                   key={item.label}
-                  className={`group relative flex items-center w-full rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200 ${
                     isCollapsed
-                      ? "h-12 justify-center hover:scale-105"
-                      : "px-3 py-2.5 justify-between"
+                      ? "w-12 h-12 justify-center hover:scale-105"
+                      : "w-full px-3 py-2.5 justify-between"
                   } ${
                     item.active
-                      ? isDarkMode
+                      ? isCollapsed
+                        ? isDarkMode
+                          ? "bg-slate-600 text-white shadow-xl border-2 border-slate-400 ring-2 ring-slate-500/50"
+                          : "bg-slate-700 text-white shadow-xl border-2 border-slate-500 ring-2 ring-slate-400/50"
+                        : isDarkMode
                         ? "bg-slate-700 text-white shadow-lg border border-slate-600"
                         : "bg-slate-800 text-white shadow-lg"
                       : isDarkMode
@@ -224,13 +270,20 @@ export function Sidebar({
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                   title={isCollapsed ? item.label : undefined}
+                  onClick={() => navigate(item.path)}
                 >
                   <div
                     className={`flex items-center ${
                       isCollapsed ? "justify-center" : "gap-3"
+                    } ${
+                      item.active && isCollapsed ? "transform scale-110" : ""
                     }`}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon
+                      className={`h-5 w-5 flex-shrink-0 ${
+                        item.active && isCollapsed ? "drop-shadow-lg" : ""
+                      }`}
+                    />
                     {!isCollapsed && <span>{item.label}</span>}
                   </div>
 
@@ -253,7 +306,13 @@ export function Sidebar({
 
                   {/* Collapsed Count Indicator */}
                   {isCollapsed && item.count && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    <span
+                      className={`absolute -top-1 -right-1 h-5 w-5 text-white text-xs rounded-full flex items-center justify-center shadow-lg ${
+                        item.active
+                          ? "bg-blue-500 ring-2 ring-blue-300"
+                          : "bg-red-500"
+                      }`}
+                    >
                       {item.count > 9 ? "9+" : item.count}
                     </span>
                   )}
@@ -263,7 +322,7 @@ export function Sidebar({
           </div>
 
           {/* Custom Labels Section */}
-          <div className={`${isCollapsed ? "px-2 pb-4" : "px-4 pb-4"}`}>
+          {/* <div className={`${isCollapsed ? "px-2 pb-4" : "px-4 pb-4"}`}>
             {!isCollapsed && (
               <div className="mb-3 flex items-center justify-between">
                 <h3
@@ -275,9 +334,7 @@ export function Sidebar({
                 </h3>
                 <button
                   className={`p-1 rounded transition-colors ${
-                    isDarkMode
-                      ? "hover:bg-gray-800 text-gray-400"
-                      : "hover:bg-gray-100 text-gray-500"
+                    isDarkMode ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"
                   }`}
                 >
                   <Plus className="h-3 w-3" />
@@ -291,9 +348,7 @@ export function Sidebar({
                   key={item.label}
                   title={isCollapsed ? item.label : undefined}
                   className={`group flex items-center w-full rounded-lg text-sm transition-all duration-200 ${
-                    isCollapsed
-                      ? "h-10 justify-center hover:scale-105"
-                      : "gap-3 px-3 py-2"
+                    isCollapsed ? "h-10 justify-center hover:scale-105" : "gap-3 px-3 py-2"
                   } ${
                     isDarkMode
                       ? "text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -309,7 +364,7 @@ export function Sidebar({
                 </button>
               ))}
             </nav>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer Section */}
