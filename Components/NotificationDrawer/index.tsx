@@ -1,29 +1,40 @@
-import { motion, AnimatePresence } from "framer-motion"
-import { X, Check, Clock } from "lucide-react"
-import useNotification from "../../store/useNotification"
-import useTheme from "../../store/useTheme"
-
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Check, Clock } from "lucide-react";
+import useNotification from "../../store/useNotification";
+import useTheme from "../../store/useTheme";
 
 export function NotificationDrawer() {
-  const { notifications, isDrawerOpen, setDrawerOpen, markAllAsRead, markAsRead } = useNotification()
-  const isDarkMode = useTheme((state) => state.theme === "dark")
+  const {
+    notifications,
+    isDrawerOpen,
+    setDrawerOpen,
+    markAllAsRead,
+    markAsRead,
+  } = useNotification();
+  const isDarkMode = useTheme((state) => state.theme === "dark");
 
-  const unreadCount = notifications.filter((n) => !n.seen).length
+  const unreadCount = notifications.filter((n) => !n.seen).length;
 
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const formatDate = (timestamp: number): string => {
+    const diffMs = Date.now() - timestamp;
 
-    if (diffInHours < 1) {
-      return "Just now"
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24)
-      return `${diffInDays}d ago`
-    }
-  }
+    // --- unit lengths (ms) ---
+    const sec = 1_000;
+    const min = 60 * sec;
+    const hr = 60 * min;
+    const day = 24 * hr;
+    const mon = 30 * day; // ≈ 1 month
+    const yr = 365 * day; // ≈ 1 year
+
+    if (diffMs < 10 * sec) return "Just now"; // < 10 s
+    if (diffMs < min) return `${Math.floor(diffMs / sec)}s ago`; // seconds
+    if (diffMs < hr) return `${Math.floor(diffMs / min)}m ago`; // minutes
+    if (diffMs < day) return `${Math.floor(diffMs / hr)}h ago`; // hours
+    if (diffMs < mon) return `${Math.floor(diffMs / day)}d ago`; // days
+    if (diffMs < yr) return `${Math.floor(diffMs / mon)}mo ago`; // months
+
+    return `${Math.floor(diffMs / yr)}y ago`; // years
+  };
 
   return (
     <>
@@ -58,11 +69,17 @@ export function NotificationDrawer() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <h2 className={`text-lg font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                <h2
+                  className={`text-lg font-semibold ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
                   Notifications
                 </h2>
                 {unreadCount > 0 && (
-                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">{unreadCount}</span>
+                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                    {unreadCount}
+                  </span>
                 )}
               </div>
               <button
@@ -79,11 +96,17 @@ export function NotificationDrawer() {
 
             {/* Mark all as read button */}
             {unreadCount > 0 && (
-              <div className={`p-4 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}>
+              <div
+                className={`p-4 border-b ${
+                  isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
+              >
                 <button
                   onClick={markAllAsRead}
                   className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                    isDarkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"
+                    isDarkMode
+                      ? "text-blue-400 hover:text-blue-300"
+                      : "text-blue-600 hover:text-blue-700"
                   }`}
                 >
                   <Check className="h-4 w-4" />
@@ -101,17 +124,33 @@ export function NotificationDrawer() {
                       isDarkMode ? "bg-gray-800" : "bg-gray-200"
                     }`}
                   >
-                    <Clock className={`h-8 w-8 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`} />
+                    <Clock
+                      className={`h-8 w-8 ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    />
                   </div>
-                  <h3 className={`text-lg font-medium mb-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                  <h3
+                    className={`text-lg font-medium mb-2 ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     No notifications
                   </h3>
-                  <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  <p
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
                     You're all caught up! Check back later for new updates.
                   </p>
                 </div>
               ) : (
-                <div className={`divide-y ${isDarkMode ? "divide-gray-700" : "divide-gray-200"}`}>
+                <div
+                  className={`divide-y ${
+                    isDarkMode ? "divide-gray-700" : "divide-gray-200"
+                  }`}
+                >
                   {notifications.map((notification) => (
                     <motion.div
                       key={notification.id}
@@ -123,8 +162,8 @@ export function NotificationDrawer() {
                             ? "bg-gray-800 hover:bg-gray-700"
                             : "bg-blue-50 hover:bg-blue-100"
                           : isDarkMode
-                            ? "hover:bg-gray-800"
-                            : "hover:bg-gray-100"
+                          ? "hover:bg-gray-800"
+                          : "hover:bg-gray-100"
                       }`}
                       onClick={() => markAsRead(notification.id)}
                     >
@@ -134,10 +173,18 @@ export function NotificationDrawer() {
                       )}
 
                       <div className={`${!notification.seen ? "ml-4" : ""}`}>
-                        <p className={`text-sm leading-relaxed ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>
+                        <p
+                          className={`text-sm leading-relaxed ${
+                            isDarkMode ? "text-gray-200" : "text-gray-800"
+                          }`}
+                        >
                           {notification.log}
                         </p>
-                        <p className={`text-xs mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                        <p
+                          className={`text-xs mt-2 ${
+                            isDarkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
                           {formatDate(notification.date)}
                         </p>
                       </div>
@@ -150,5 +197,5 @@ export function NotificationDrawer() {
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

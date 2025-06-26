@@ -121,7 +121,7 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  className={`w-full min-h-full h-full px-0 py-2 border-none focus:outline-none ${isDarkMode ? "bg-black text-white" : "bg-white text-black"
+                  className={`w-full min-h-full h-full px-0 py-2 border-none focus:outline-none ${isDarkMode ? "bg-[#141414] text-white" : "bg-white text-black"
                     }`}
                   style={{ resize: "none" }}
                 />
@@ -131,7 +131,7 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
                   <div
                     className={`absolute top-0 px-0 py-2 pointer-events-none ${align === "left" ? "left-0" : ""
                       } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""
-                      } ${align === "right" ? "right-0" : ""} ${isDarkMode ? "bg-black text-white" : "bg-white text-black"
+                      } ${align === "right" ? "right-0" : ""} ${isDarkMode ? "bg-[#141414] text-white" : "bg-white text-black"
                       }`}
                     style={{
                       fontSize: "16px",
