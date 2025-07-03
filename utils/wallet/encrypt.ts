@@ -66,12 +66,8 @@ async function encrypt_wander(text: string) {
         hash: "SHA-256",
       });
       function uint8ArrayToString(data: Uint8Array | ArrayBufferLike): string {
-        if (data instanceof ArrayBuffer) {
-          data = new Uint8Array(data);
-        }
-        return Array.from(data as Uint8Array)
-          .map((byte) => String.fromCharCode(byte))
-          .join("");
+        const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data);
+        return btoa(String.fromCharCode(...uint8Array));
       }
       const encryptedDataString = uint8ArrayToString(encryptedData);
       return { encryptedData: encryptedDataString, walletType: "Wander" };

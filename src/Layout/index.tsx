@@ -41,10 +41,8 @@ function App() {
             if(res && res.data && res.status) {
               setUser(res.data as unknown as User);
               const ds = res.data as unknown as User;
-              console.log(ds.updates.entries) 
-              if(ds.updates && ds.updates.entries && ds.updates.entries.length > 0) {
-                //@ts-ignore
-                addNotification(ds.updates.entries);
+              if(ds.updates &&  ds.updates.length > 0) {
+                addNotification(ds.updates);
               }
               dialog.close();
             }else{
