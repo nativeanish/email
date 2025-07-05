@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Clock } from "lucide-react";
 import useNotification from "../../store/useNotification";
@@ -13,31 +14,36 @@ export function NotificationDrawer() {
   } = useNotification();
   const isDarkMode = useTheme((state) => state.theme === "dark");
 
-  const unreadCount = notifications.filter((n) => !n.seen).length;
+  /** newest → oldest */
+  const sortedNotifications = useMemo(
+    // ▼ change is here ── b.date - a.date
+    () => [...notifications].sort((a, b) => b.date - a.date),
+    [notifications]
+  );
+
+  const unreadCount = sortedNotifications.filter((n) => !n.seen).length;
 
   const formatDate = (timestamp: number): string => {
     const diffMs = Date.now() - timestamp;
+    const sec = 1_000,
+      min = 60 * sec,
+      hr = 60 * min,
+      day = 24 * hr,
+      mon = 30 * day,
+      yr = 365 * day;
 
-    // --- unit lengths (ms) ---
-    const sec = 1_000;
-    const min = 60 * sec;
-    const hr = 60 * min;
-    const day = 24 * hr;
-    const mon = 30 * day; // ≈ 1 month
-    const yr = 365 * day; // ≈ 1 year
-
-    if (diffMs < 10 * sec) return "Just now"; // < 10 s
-    if (diffMs < min) return `${Math.floor(diffMs / sec)}s ago`; // seconds
-    if (diffMs < hr) return `${Math.floor(diffMs / min)}m ago`; // minutes
-    if (diffMs < day) return `${Math.floor(diffMs / hr)}h ago`; // hours
-    if (diffMs < mon) return `${Math.floor(diffMs / day)}d ago`; // days
-    if (diffMs < yr) return `${Math.floor(diffMs / mon)}mo ago`; // months
-
-    return `${Math.floor(diffMs / yr)}y ago`; // years
+    if (diffMs < 10 * sec) return "Just now";
+    if (diffMs < min) return `${Math.floor(diffMs / sec)}s ago`;
+    if (diffMs < hr) return `${Math.floor(diffMs / min)}m ago`;
+    if (diffMs < day) return `${Math.floor(diffMs / hr)}h ago`;
+    if (diffMs < mon) return `${Math.floor(diffMs / day)}d ago`;
+    if (diffMs < yr) return `${Math.floor(diffMs / mon)}mo ago`;
+    return `${Math.floor(diffMs / yr)}y ago`;
   };
 
   return (
     <>
+      {/* Backdrop */}
       <AnimatePresence>
         {isDrawerOpen && (
           <motion.div
@@ -94,7 +100,7 @@ export function NotificationDrawer() {
               </button>
             </div>
 
-            {/* Mark all as read button */}
+            {/* Mark‑all‑as‑read */}
             {unreadCount > 0 && (
               <div
                 className={`p-4 border-b ${
@@ -115,9 +121,9 @@ export function NotificationDrawer() {
               </div>
             )}
 
-            {/* Notifications List */}
+            {/* Notifications list */}
             <div className="flex-1 overflow-y-auto">
-              {notifications.length === 0 ? (
+              {sortedNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center p-4">
                   <div
                     className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
@@ -151,12 +157,12 @@ export function NotificationDrawer() {
                     isDarkMode ? "divide-gray-700" : "divide-gray-200"
                   }`}
                 >
-                  {notifications.map((notification) => (
+                  {sortedNotifications.map((notification) => (
                     <motion.div
                       key={notification.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`p-4 cursor-pointer transition-colors relative ${
+                      className={`p-4 cursor-pointer transition-colors relative overflow-hidden ${
                         !notification.seen
                           ? isDarkMode
                             ? "bg-gray-800 hover:bg-gray-700"
@@ -167,14 +173,14 @@ export function NotificationDrawer() {
                       }`}
                       onClick={() => markAsRead(notification.id)}
                     >
-                      {/* Unread indicator */}
+                      {/* unread indicator */}
                       {!notification.seen && (
-                        <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
                       )}
 
                       <div className={`${!notification.seen ? "ml-4" : ""}`}>
                         <p
-                          className={`text-sm leading-relaxed ${
+                          className={`text-sm leading-relaxed break-words ${
                             isDarkMode ? "text-gray-200" : "text-gray-800"
                           }`}
                         >

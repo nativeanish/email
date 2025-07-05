@@ -5,11 +5,7 @@ import { X } from "lucide-react"
 import Editor from "../../apps/Editor"
 import ToolBar from "../../apps/Editor/ToolBar"
 import useFileStore from "../../store/useFileStore"
-
-interface EmailChip {
-  email: string
-  id: string
-}
+import useMail, { EmailChip } from "../../store/useMail"
 
 interface EmailFieldProps {
   label: string
@@ -107,21 +103,31 @@ function EmailField({
 }
 
 function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
+  const { 
+    setSubject, 
+    subject, 
+    to: toEmailChips, 
+    cc: ccEmailChips, 
+    bcc: bccEmailChips,
+    addTo: setToEmailChips,
+    addCc: setCcEmailChips,
+    addBcc: setBccEmailChips,
+    removeTo: removeToEmailChip,
+    removeCc: removeCcEmailChip,
+    removeBcc: removeBccEmailChip
+  } = useMail()
+  
   // To field state
   const [toEmailInput, setToEmailInput] = useState("")
-  const [toEmailChips, setToEmailChips] = useState<EmailChip[]>([])
   const [isToEmailValid, setIsToEmailValid] = useState(true)
-
   // CC field state
   const [showCC, setShowCC] = useState(false)
   const [ccEmailInput, setCcEmailInput] = useState("")
-  const [ccEmailChips, setCcEmailChips] = useState<EmailChip[]>([])
   const [isCcEmailValid, setIsCcEmailValid] = useState(true)
 
   // BCC field state
   const [showBCC, setShowBCC] = useState(false)
   const [bccEmailInput, setBccEmailInput] = useState("")
-  const [bccEmailChips, setBccEmailChips] = useState<EmailChip[]>([])
   const [isBccEmailValid, setIsBccEmailValid] = useState(true)
 
   const { clearSelectedFiles } = useFileStore()
@@ -140,7 +146,8 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   // Generic handlers for email fields
   const createEmailHandlers = (
     setEmailInput: (value: string) => void,
-    setEmailChips: React.Dispatch<React.SetStateAction<EmailChip[]>>,
+    addEmailChip: (email: EmailChip) => void,
+    removeEmailChip: (id: string) => void,
     setIsEmailValid: (valid: boolean) => void,
     emailInput: string,
     emailChips: EmailChip[],
@@ -156,28 +163,30 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
         e.preventDefault()
         const email = emailInput.trim()
         if (email && validateEmail(email)) {
-          setEmailChips((prev) => [...prev, { email, id: crypto.randomUUID() }])
+          addEmailChip({ email, id: crypto.randomUUID() })
           setEmailInput("")
           setIsEmailValid(true)
         } else if (email) {
           setIsEmailValid(false)
         }
       } else if (e.key === "Backspace" && !emailInput && emailChips.length > 0) {
-        setEmailChips((prev) => prev.slice(0, -1))
+        const lastChip = emailChips[emailChips.length - 1]
+        removeEmailChip(lastChip.id)
       }
     }
 
-    const removeEmailChip = (id: string) => {
-      setEmailChips((prev) => prev.filter((chip) => chip.id !== id))
+    const handleRemoveEmailChip = (id: string) => {
+      removeEmailChip(id)
     }
 
-    return { handleEmailInputChange, handleEmailInputKeyDown, removeEmailChip }
+    return { handleEmailInputChange, handleEmailInputKeyDown, removeEmailChip: handleRemoveEmailChip }
   }
 
   // To field handlers
   const toHandlers = createEmailHandlers(
     setToEmailInput,
     setToEmailChips,
+    removeToEmailChip,
     setIsToEmailValid,
     toEmailInput,
     toEmailChips,
@@ -187,6 +196,7 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   const ccHandlers = createEmailHandlers(
     setCcEmailInput,
     setCcEmailChips,
+    removeCcEmailChip,
     setIsCcEmailValid,
     ccEmailInput,
     ccEmailChips,
@@ -196,6 +206,7 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   const bccHandlers = createEmailHandlers(
     setBccEmailInput,
     setBccEmailChips,
+    removeBccEmailChip,
     setIsBccEmailValid,
     bccEmailInput,
     bccEmailChips,
@@ -205,7 +216,8 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
     setShowCC(!showCC)
     if (showCC) {
       setCcEmailInput("")
-      setCcEmailChips([])
+      // Clear all CC chips from store
+      ccEmailChips.forEach(chip => removeCcEmailChip(chip.id))
       setIsCcEmailValid(true)
     }
   }
@@ -214,7 +226,8 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
     setShowBCC(!showBCC)
     if (showBCC) {
       setBccEmailInput("")
-      setBccEmailChips([])
+      // Clear all BCC chips from store
+      bccEmailChips.forEach(chip => removeBccEmailChip(chip.id))
       setIsBccEmailValid(true)
     }
   }
@@ -282,6 +295,8 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
             className={`w-full px-0 py-2 bg-transparent border-none focus:outline-none ${
               isDarkMode ? "text-white placeholder-gray-50" : "text-gray-900 placeholder-gray-900"
             }`}
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
           />
         </div>
 

@@ -1,13 +1,12 @@
-"use client"
-
 import { useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Wallet, Check, AlertCircle, ExternalLink, User, Mail, Calendar } from "lucide-react"
+import { X, Wallet, Check, AlertCircle, ExternalLink, User, Copy } from "lucide-react"
 import type { WalletModalProps, WalletOption } from "../../types/wallet"
 import { cn } from "../../utils/cn"
 import Metamask from "../../Image/Metamask"
 import Wander from "../../Image/Wander"
 import { useWalletStore } from "../../store/useWallet"
+import { showSuccess } from "../UI/Toast/Toast-Context"
 
 const defaultWalletOptions: WalletOption[] = [
   {
@@ -156,10 +155,17 @@ export default function WalletModal({
           </div>
           <div className="flex-1">
             <h3 className={cn("font-medium", darkMode ? "text-white" : "text-gray-900")}>
-              {profileDetails.username || "Anonymous User"}
+                {profileDetails.username && profileDetails.username.length > 0 ? (<>
+                 {profileDetails.username.length > 30 ? `${profileDetails.username.slice(0, 30)}...` : profileDetails.username}
+                </>): "Anonymous User"}
+
             </h3>
             {profileDetails.email && (
-              <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-600")}>{profileDetails.email}</p>
+                <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-600")}>
+                {profileDetails.email && profileDetails.email.length > 25
+                  ? `${profileDetails.email.slice(0, 25)}...@${profileDetails.email.split('@')[1]}`
+                  : profileDetails.email}
+                </p>
             )}
           </div>
         </div>
@@ -337,6 +343,20 @@ export default function WalletModal({
                         >
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           {formatAddress(address)}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(address)
+                              showSuccess("Address copied to clipboard!")
+                            }}
+                            className={cn(
+                              "ml-1 p-1 rounded hover:bg-gray-700/30 transition-colors",
+                              darkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-700"
+                            )}
+                            title="Copy address"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       )}
                     </div>

@@ -14,45 +14,97 @@ import { User } from "../../types/user";
 import { showDanger } from "../../Components/UI/Toast/Toast-Context";
 import { useNavigate } from "react-router-dom";
 import useNotification from "../../store/useNotification";
+import useLoginUser from "../../store/useLoginUser";
 
 function App() {
   const theme = useTheme((state) => state.theme);
   const isDarkMode = theme === "dark";
   const [showLogin, setLoginShow] = useState(false);
   const { show } = useMessage();
-  const {address, isConnected, connectedWallet: walletType} = useWalletStore()
-  const dialog = useLoading()
-  const [user, setUser] = useState<null|User>(null)
-  const navigate = useNavigate()
-  const {addNotification} = useNotification()
-  useEffect(() => {
-   if(!isConnected || !address || !walletType) {
-      setLoginShow(true);
-    }else{
-      setLoginShow(false);
-      if(isConnected && address && walletType) {
-          dialog.setTitle("Fetching Emails")
-          dialog.setDescription("Please wait while we fetch your emails.");
-          dialog.setDarkMode(isDarkMode);
-          dialog.setSize("md");
-          dialog.open()
-          dialog.setShowCloseButton(false);
-          check_user(address).then((res) => {
-            if(res && res.data && res.status) {
-              setUser(res.data as unknown as User);
-              const ds = res.data as unknown as User;
-              if(ds.updates &&  ds.updates.length > 0) {
-                addNotification(ds.updates);
-              }
-              dialog.close();
-            }else{
-              showDanger("User not found","Please register first.",6000);
-              navigate("/onboard");
+  const {
+    address,
+    isConnected,
+    connectedWallet: walletType,
+  } = useWalletStore();
+  const dialog = useLoading();
+  const {user, setUser} = useLoginUser()
+  const navigate = useNavigate();
+  const { addNotification } = useNotification();
+  const fetchanddecrypt = async (id: string) => {
+    try {
+      const data = await fetch(`https://arweave.net/${id}`);
+      if (data.status === 200 && data.ok) {
+        const _json = await data.json();
+        if (_json.encryptedData && _json.walletType) {
+          const keyuint = (await window.arweaveWallet.decrypt(
+            new Uint8Array(
+              atob(_json.encryptedData)
+                .split("")
+                .map((c) => c.charCodeAt(0))
+            ),
+            {
+              algorithm: "RSA-OAEP",
+              hash: "SHA-256",
             }
-          })
+          )) as unknown as Uint8Array;
+          const key = new TextDecoder().decode(keyuint);
+          return key;
+        }
+      }
+      return false;
+    } catch (err) {
+      console.log(err);
+      showDanger("Something went wrong on fetching and decrypting wallet keys");
+    }
+  };
+  useEffect(() => {
+    if (!isConnected || !address || !walletType) {
+      setLoginShow(true);
+    } else {
+      setLoginShow(false);
+      if (isConnected && address && walletType) {
+        dialog.setTitle("Fetching Emails");
+        dialog.setDescription("Please wait while we fetch your emails.");
+        dialog.setDarkMode(isDarkMode);
+        dialog.setSize("md");
+        dialog.open();
+        dialog.setShowCloseButton(false);
+        check_user(address).then((res) => {
+          if (res && res.data && res.status) {
+            const ds = res.data as unknown as User;
+            console.log(ds)
+            dialog.setTitle("Fetching Wallet Keys");
+            dialog.setDescription(
+              "Please wait while we fetch your wallet keys and Allow Wallet to decrypt them."
+            );
+            fetchanddecrypt(ds.privateKey)
+              .then((e) => {
+                if(!e){
+                  showDanger("Decryption failed", "Please try again later.");
+                  dialog.close();
+                  return;
+                }
+                ds.privateKey = e;
+                setUser(ds);
+                if (ds.updates && ds.updates.length > 0) {
+                  addNotification(ds.updates);
+                }
+                dialog.close();
+              })
+              .catch((err) => {
+                console.error(
+                  "Error fetching and decrypting wallet keys:",
+                  err
+                );
+              });
+          } else {
+            showDanger("User not found", "Please register first.", 6000);
+            navigate("/onboard");
+          }
+        });
       }
     }
-  },[isConnected, address, walletType])
+  }, [isConnected, address, walletType]);
 
   return (
     <div className={`flex h-screen ${theme ? "dark" : ""}`}>
@@ -81,7 +133,14 @@ function App() {
         </div>
       </div>
       <Dialog />
-      <WalletModal darkMode={isDarkMode} showCloseButton={false} isOpen={showLogin} onClose={() => setLoginShow(false)} closeOnBackdropClick={false} closable={false}/>
+      <WalletModal
+        darkMode={isDarkMode}
+        showCloseButton={false}
+        isOpen={showLogin}
+        onClose={() => setLoginShow(false)}
+        closeOnBackdropClick={false}
+        closable={false}
+      />
     </div>
   );
 }

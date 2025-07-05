@@ -6,8 +6,6 @@ import {
   AlertTriangle,
   Trash2,
   Plus,
-  Tag,
-  Star,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -47,29 +45,6 @@ const mainNavItems = [
   { icon: Trash2, label: "Bin", path: "/dashboard/trash", active: location.pathname === "/dashboard/trash" },
   { icon: AlertTriangle, label: "Spam", path: "/dashboard/spam", active: location.pathname === "/dashboard/spam" },
 ];
-
-  // const customLabels = [
-  //   {
-  //     icon: Star,
-  //     label: "Important",
-  //     color: isDarkMode ? "text-amber-400" : "text-amber-500",
-  //   },
-  //   {
-  //     icon: Tag,
-  //     label: "Work",
-  //     color: isDarkMode ? "text-cyan-400" : "text-cyan-500",
-  //   },
-  //   {
-  //     icon: Tag,
-  //     label: "Personal",
-  //     color: isDarkMode ? "text-emerald-400" : "text-emerald-500",
-  //   },
-  //   {
-  //     icon: Tag,
-  //     label: "Finance",
-  //     color: isDarkMode ? "text-violet-400" : "text-violet-500",
-  //   },
-  // ]
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64";
 
