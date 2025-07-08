@@ -1,4 +1,4 @@
-import { ArconnectSigner, InjectedEthereumSigner } from "@ar.io/arbundles";
+import { ArconnectSigner } from "@ar.io/arbundles";
 import { showDanger } from "../../Components/UI/Toast/Toast-Context";
 
 export const get_wander_signer = () => {

@@ -15,6 +15,32 @@ import { showDanger } from "../../Components/UI/Toast/Toast-Context";
 import { useNavigate } from "react-router-dom";
 import useNotification from "../../store/useNotification";
 import useLoginUser from "../../store/useLoginUser";
+const em = [
+  {
+    "id": 1,
+    "from": "alice@example.com",
+    "subject": "Meeting Tomorrow",
+    "preview": "Hi team, just a quick reminder that we have a meeting scheduled for 10 AM tomorrow.",
+    "date": "2025-07-05T14:15:00Z",
+    "read": false
+  },
+  {
+    "id": 2,
+    "from": "bob@example.com",
+    "subject": "Quarterly Report Attached",
+    "preview": "Please find the Q2 report attached. Let me know if you have any questions.",
+    "date": "2025-07-04T09:32:00Z",
+    "read": true
+  },
+  {
+    "id": 3,
+    "from": "news@newsletter.com",
+    "subject": "Your Weekly Digest",
+    "preview": "Here are this week’s top stories in tech, business, and entertainment …",
+    "date": "2025-07-03T18:20:00Z",
+    "read": false
+  }
+]
 
 function App() {
   const theme = useTheme((state) => state.theme);
@@ -105,10 +131,9 @@ function App() {
       }
     }
   }, [isConnected, address, walletType]);
-
   return (
     <div className={`flex h-screen ${theme ? "dark" : ""}`}>
-      <Sidebar name={user?.username} image={user?.image} bio={user?.bio} />
+      <Sidebar name={user?.username} image={user?.image} bio={user?.bio} display_name={user?.name} />
 
       <div className="flex-1 flex flex-col h-full">
         <Header />
@@ -119,9 +144,6 @@ function App() {
         >
           <EmailList
             isEmailListVisible={true}
-            emails={[]}
-            selectedEmail={null}
-            handleEmailSelect={() => {}}
           />
           <EmailContent
             isDarkMode={isDarkMode}

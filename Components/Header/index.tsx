@@ -11,6 +11,7 @@ import useSideBar from "../../store/useSideBar";
 import { useWalletStore } from "../../store/useWallet";
 import useNotification from "../../store/useNotification";
 import { NotificationDrawer } from "../NotificationDrawer";
+import { useLocation } from "react-router-dom";
 export function Header() {
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const toggleTheme = useTheme((state) => state.setTheme);
@@ -19,6 +20,9 @@ export function Header() {
   const { disconnectWallet } = useWalletStore();
   const { notifications, setDrawerOpen } = useNotification();
   const unreadCount = notifications.filter((n) => !n.seen).length;
+  const location = useLocation();
+ const section = location.pathname.replace(/^\/dashboard\/?/, "");
+
   return (
     <div>
       <header
@@ -44,7 +48,7 @@ export function Header() {
                 isDarkMode ? "text-white" : "text-gray-900"
               }`}
             >
-              Inbox
+              {section.charAt(0).toUpperCase() + section.slice(1)}
             </h2>
           </div>
           <div className="flex items-center gap-2">

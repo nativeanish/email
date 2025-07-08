@@ -18,20 +18,20 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/onboard" element={<OnBoard />} />
-          <Route element={<Layout />}>
-            <Route
-              path="/dashboard"
-              element={<Navigate to="/dashboard/inbox" replace />}
-            />
-            <Route path="/dashboard/inbox" element={<Inbox />} />
-            <Route path="/dashboard/trash" element={<Inbox />} />
-            <Route path="/dashboard/sent" element={<Inbox />} />
-            <Route path="/dashboard/draft" element={<Inbox />} />
-            <Route path="/dashboard/spam" element={<Inbox />} />
-            <Route path="/dashboard/archive" element={<Inbox />} />
-          </Route>
           <Route path="/login" element={<Login />} />
+
+          {/* Redirect /dashboard → /dashboard/inbox */}
+          <Route
+            path="/dashboard"
+            element={<Navigate to="/dashboard/inbox" replace />}
+          />
+
+          {/* Dashboard pages wrapped with Layout */}
+          <Route element={<Layout />}>
+            <Route path="/dashboard/:slug" element={<Inbox />} />
+          </Route>
         </Routes>
+
         <ToastContainer />
       </ToastProvider>
     </Router>

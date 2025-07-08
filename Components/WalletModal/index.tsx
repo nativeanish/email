@@ -1,6 +1,8 @@
+"use client"
+
 import { useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Wallet, Check, AlertCircle, ExternalLink, User, Copy } from "lucide-react"
+import { X, Wallet, Check, AlertCircle, ExternalLink, User, Copy, AtSign, Hash } from "lucide-react"
 import type { WalletModalProps, WalletOption } from "../../types/wallet"
 import { cn } from "../../utils/cn"
 import Metamask from "../../Image/Metamask"
@@ -36,6 +38,7 @@ interface ProfileDetails {
   email?: string
   photo?: string
   bio?: string
+  name: string
 }
 
 interface ExtendedWalletModalProps extends WalletModalProps {
@@ -130,82 +133,132 @@ export default function WalletModal({
     return (
       <div
         className={cn(
-          "mb-6 p-4 rounded-lg border",
-          darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200",
+          "mb-6 p-6 rounded-2xl border backdrop-blur-sm",
+          darkMode ? "bg-gray-800/50 border-gray-700/50 shadow-xl" : "bg-white/80 border-gray-200/50 shadow-lg",
         )}
       >
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-5">
           <div className="relative">
             {profileDetails.photo ? (
-              <img
-                src={profileDetails.photo || "/placeholder.svg"}
-                alt={profileDetails.username || "Profile"}
-                className="w-12 h-12 rounded-full object-cover"
-              />
+              <div className="relative">
+                <img
+                  src={profileDetails.photo || "/placeholder.svg"}
+                  alt={profileDetails.username || "Profile"}
+                  className="w-16 h-16 rounded-2xl object-cover"
+                />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-gray-800"></div>
+              </div>
             ) : (
               <div
                 className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center",
-                  darkMode ? "bg-gray-700" : "bg-gray-200",
+                  "w-16 h-16 rounded-2xl flex items-center justify-center",
+                  darkMode ? "bg-gray-700/50" : "bg-gray-100",
                 )}
               >
-                <User className={cn("w-6 h-6", darkMode ? "text-gray-400" : "text-gray-500")} />
+                <User className={cn("w-8 h-8", darkMode ? "text-gray-400" : "text-gray-500")} />
               </div>
             )}
           </div>
-          <div className="flex-1">
-            <h3 className={cn("font-medium", darkMode ? "text-white" : "text-gray-900")}>
-                {profileDetails.username && profileDetails.username.length > 0 ? (<>
-                 {profileDetails.username.length > 30 ? `${profileDetails.username.slice(0, 30)}...` : profileDetails.username}
-                </>): "Anonymous User"}
 
-            </h3>
-            {profileDetails.email && (
-                <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-600")}>
-                {profileDetails.email && profileDetails.email.length > 25
-                  ? `${profileDetails.email.slice(0, 25)}...@${profileDetails.email.split('@')[1]}`
-                  : profileDetails.email}
-                </p>
-            )}
+          <div className="flex-1 min-w-0">
+            <div className="space-y-2">
+              {/* Primary Display - Name or Username */}
+              <div className="ml-0.5">
+                <h3 className={cn("text-xl font-bold tracking-tight", darkMode ? "text-white" : "text-gray-900")}>
+                  {profileDetails.name && profileDetails.name.trim()
+                    ? profileDetails.name.length > 20
+                      ? `${profileDetails.name.slice(0, 20)}...`
+                      : profileDetails.name
+                    : profileDetails.username && profileDetails.username.length > 0
+                      ? profileDetails.username.length > 20
+                        ? `${profileDetails.username.slice(0, 20)}...`
+                        : profileDetails.username
+                      : "Anonymous User"}
+                </h3>
+              </div>
+
+              {/* Secondary Info */}
+              <div className="space-y-1.5">
+                {/* Username with icon */}
+                {profileDetails.username && profileDetails.name && profileDetails.name.trim() && (
+                  <div className="flex items-center gap-2">
+                    <Hash className={cn("w-3.5 h-3.5", darkMode ? "text-gray-500" : "text-gray-400")} />
+                    <span
+                      className={cn("text-sm font-medium", darkMode ? "text-gray-400" : "text-gray-600")}
+                      title={profileDetails.username}
+                    >
+                      {profileDetails.username.length > 25
+                        ? `${profileDetails.username.slice(0, 25)}...`
+                        : profileDetails.username}
+                    </span>
+                  </div>
+                )}
+
+                {/* Email with icon */}
+                {profileDetails.email && (
+                  <div className="flex items-center gap-2">
+                    <AtSign className={cn("w-3.5 h-3.5", darkMode ? "text-gray-500" : "text-gray-400")} />
+                    <span
+                      className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-600")}
+                      title={profileDetails.email}
+                    >
+                      {profileDetails.email.length > 30
+                        ? `${profileDetails.email.slice(0, 18)}...@${profileDetails.email.split("@")[1]}`
+                        : profileDetails.email}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Bio */}
         {profileDetails.bio && (
-          <p className={cn("text-sm", darkMode ? "text-gray-300" : "text-gray-700")}>{profileDetails.bio}</p>
+          <div className="mt-4 pt-4 border-t border-gray-700/30">
+            <p className={cn("text-sm leading-relaxed", darkMode ? "text-gray-300" : "text-gray-700")}>
+              {profileDetails.bio}
+            </p>
+          </div>
         )}
 
         {/* Email Integration Options */}
         {canShowEmailIntegration && (
-          <div className="mt-4 pt-4 border-t border-gray-600">
-            <h4 className={cn("text-sm font-medium mb-3", darkMode ? "text-white" : "text-gray-900")}>
-              Connect Email Accounts
-            </h4>
-            <div className="space-y-2">
+          <div className="mt-6 pt-6 border-t border-gray-700/30">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className={cn("text-sm font-semibold", darkMode ? "text-white" : "text-gray-900")}>Email Accounts</h4>
+              <span className={cn("text-xs", darkMode ? "text-gray-500" : "text-gray-400")}>Connect your accounts</span>
+            </div>
+
+            <div className="grid gap-3">
               <button
                 disabled
                 className={cn(
-                  "w-full p-3 border rounded-lg transition-all duration-200 opacity-50 cursor-not-allowed",
-                  darkMode ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-50",
+                  "group relative p-4 rounded-xl border transition-all duration-200 overflow-hidden",
+                  "opacity-60 cursor-not-allowed",
+                  darkMode
+                    ? "border-gray-700/50 bg-gray-800/30 hover:bg-gray-800/50"
+                    : "border-gray-200/50 bg-gray-50/50 hover:bg-gray-50",
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded flex items-center justify-center">
-                    {/* <Mail className="w-4 h-4 text-white" /> */}
-                    <img src="https://arweave.net/z_DYh_N1jB9phWIS6hRmSnR1cpsqOv5Xn4fROVIqThY" alt="Gmail Logo" className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                    <img
+                      src="https://arweave.net/z_DYh_N1jB9phWIS6hRmSnR1cpsqOv5Xn4fROVIqThY"
+                      alt="Gmail"
+                      className="w-5 h-5"
+                    />
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center justify-between">
-                      <span className={cn("font-medium", darkMode ? "text-gray-300" : "text-gray-700")}>Gmail</span>
-                      <span
-                        className={cn(
-                          "text-xs px-2 py-1 rounded-full",
-                          darkMode ? "bg-yellow-900/30 text-yellow-400" : "bg-yellow-100 text-yellow-700",
-                        )}
-                      >
-                        Coming Soon
+                      <span className={cn("font-medium text-sm", darkMode ? "text-gray-200" : "text-gray-800")}>
+                        Gmail
+                      </span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 font-medium">
+                        Soon
                       </span>
                     </div>
-                    <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-500")}>
+                    <p className={cn("text-xs mt-0.5", darkMode ? "text-gray-500" : "text-gray-500")}>
                       Connect your Gmail account
                     </p>
                   </div>
@@ -215,28 +268,31 @@ export default function WalletModal({
               <button
                 disabled
                 className={cn(
-                  "w-full p-3 border rounded-lg transition-all duration-200 opacity-50 cursor-not-allowed",
-                  darkMode ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-50",
+                  "group relative p-4 rounded-xl border transition-all duration-200 overflow-hidden",
+                  "opacity-60 cursor-not-allowed",
+                  darkMode
+                    ? "border-gray-700/50 bg-gray-800/30 hover:bg-gray-800/50"
+                    : "border-gray-200/50 bg-gray-50/50 hover:bg-gray-50",
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded flex items-center justify-center">
-                    <img src="https://arweave.net/_KNuBg_gmO3JscGBvkjATbTRun1fAo6QqB97fSmNm5k" alt="Outlook Logo" className="w-4 h-4" />
-                    {/* <Calendar className="w-4 h-4 text-white" /> */}
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                    <img
+                      src="https://arweave.net/_KNuBg_gmO3JscGBvkjATbTRun1fAo6QqB97fSmNm5k"
+                      alt="Outlook"
+                      className="w-5 h-5"
+                    />
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center justify-between">
-                      <span className={cn("font-medium", darkMode ? "text-gray-300" : "text-gray-700")}>Outlook</span>
-                      <span
-                        className={cn(
-                          "text-xs px-2 py-1 rounded-full",
-                          darkMode ? "bg-yellow-900/30 text-yellow-400" : "bg-yellow-100 text-yellow-700",
-                        )}
-                      >
-                        Coming Soon
+                      <span className={cn("font-medium text-sm", darkMode ? "text-gray-200" : "text-gray-800")}>
+                        Outlook
+                      </span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 font-medium">
+                        Soon
                       </span>
                     </div>
-                    <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-500")}>
+                    <p className={cn("text-xs mt-0.5", darkMode ? "text-gray-500" : "text-gray-500")}>
                       Connect your Outlook account
                     </p>
                   </div>
@@ -351,7 +407,7 @@ export default function WalletModal({
                             }}
                             className={cn(
                               "ml-1 p-1 rounded hover:bg-gray-700/30 transition-colors",
-                              darkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-700"
+                              darkMode ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-700",
                             )}
                             title="Copy address"
                           >

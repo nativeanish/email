@@ -24,6 +24,7 @@ export type Box = {
   tags:string[]
 };
 export interface User {
+  name: string;
   address: string;
   username: string;
   image: string;
@@ -34,7 +35,7 @@ export interface User {
   isArns: boolean;
   sent: number;
   received: number;
-  mailbox: Array<Box>; 
+  mailBox: Array<Box>; 
   updates: Array<UpdateEntry>;
   draft: Array<Box>;
 }

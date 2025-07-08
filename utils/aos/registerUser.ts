@@ -14,7 +14,21 @@ export default async function registerUser(privateKey: string): Promise<boolean>
     bio,
     keys,
     arns,
+    display_name
   } = useOnboard.getState();
+  if(display_name.length < 1 || display_name.length > 20) {
+    showDanger("Invalid display name", "Display name must be between 1 and 20 characters.", 5000);
+    return false;
+  }
+  if(!privateKey || privateKey.length < 1) {
+    showDanger("Invalid private key", "Private key is required to register.", 5000
+    );
+    return false;
+  }
+  if(bio && bio.length <= 0) {
+    showDanger("Invalid bio", "Bio must be there.", 5000);
+    return false;
+  }
   if (image_type === "file") {
     useLoading.setState({
       title: "Uploading image",
@@ -87,6 +101,7 @@ export default async function registerUser(privateKey: string): Promise<boolean>
         isArns: arns ? true : false,
         privateKey: privateKey,
         publicKey: keys.publicKey,
+        name: display_name,
       };
       const tags = [
         { name: "Action", value: "Evaluate" },

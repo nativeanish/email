@@ -14,15 +14,18 @@ import useSideBar from "../../store/useSideBar";
 import WalletModal from "../WalletModal";
 import useMessage from "../../store/useMessage";
 import { useLocation, useNavigate } from "react-router-dom";
+import useLoginUser from "../../store/useLoginUser";
 
 export function Sidebar({
   name,
   image,
   bio,
+  display_name
 }: {
   name?: string;
   image?: string;
   bio?: string;
+  display_name?: string;
 }) {
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const isSidebarOpen = useSideBar((state) => state.isOpen);
@@ -30,6 +33,7 @@ export function Sidebar({
   const isCollapsed = isSidebarOpen ? true : false;
   const [showWalletModal, setShowWalletModal] = useState(false);
   const { show, setShow } = useMessage();
+  const email = useLoginUser((state) => state.user?.mailBox) || [];
 
   const setIsSidebarOpen = (open: boolean) => {
     setSidebar(open);
@@ -38,12 +42,12 @@ const location = useLocation();
 const navigate = useNavigate();
 
 const mainNavItems = [
-  { icon: Mail, label: "Inbox", path: "/dashboard/inbox", count:5, active: location.pathname === "/dashboard/inbox" },
-  { icon: Send, label: "Sent", path: "/dashboard/sent", count: 89, active: location.pathname === "/dashboard/sent" },
-  { icon: File, label: "Draft", path: "/dashboard/draft", count: 90, active: location.pathname === "/dashboard/draft" },
-  { icon: Archive, label: "All Mails", path: "/dashboard/archive", active: location.pathname === "/dashboard/archive" }, // Add this route if needed
-  { icon: Trash2, label: "Bin", path: "/dashboard/trash", active: location.pathname === "/dashboard/trash" },
-  { icon: AlertTriangle, label: "Spam", path: "/dashboard/spam", active: location.pathname === "/dashboard/spam" },
+  { icon: Mail, label: "Inbox", path: "/dashboard/inbox", count:email.filter((e) => e.tags[0] === "inbox").length, active: location.pathname === "/dashboard/inbox" },
+  { icon: Send, label: "Sent", path: "/dashboard/sent", count: email.filter((e) => e.tags[0] === "sent").length, active: location.pathname === "/dashboard/sent" },
+  { icon: File, label: "Draft", path: "/dashboard/draft", count: email.filter((e) => e.tags[0] === "draft").length, active: location.pathname === "/dashboard/draft" },
+  { icon: Archive, label: "Archive", path: "/dashboard/archive",count: email.filter((e) => e.tags[0] === "archive").length, active: location.pathname === "/dashboard/archive" }, // Add this route if needed
+  { icon: Trash2, label: "Bin", path: "/dashboard/trash", count:email.filter((e) => e.tags[0] === "bin").length, active: location.pathname === "/dashboard/trash" },
+  { icon: AlertTriangle, label: "Spam", path: "/dashboard/spam",count: email.filter((e) => e.tags[0] === "spam").length, active: location.pathname === "/dashboard/spam" },
 ];
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64";
@@ -169,7 +173,7 @@ const mainNavItems = [
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate text-white">
-                    {name || "nativeanish"}
+                    {display_name || "nativeanish"}
                   </p>
                   <p className="text-xs text-gray-300 truncate">
                     {name ? `${name}@perma.email` : "nativeanish@perma.email"}
@@ -263,7 +267,7 @@ const mainNavItems = [
                   </div>
 
                   {/* Count Badge */}
-                  {!isCollapsed && item.count && (
+                  {!isCollapsed  && item.count > 0 && (
                     <span
                       className={`px-2 py-0.5 text-xs rounded-full ${
                         item.active
@@ -275,12 +279,12 @@ const mainNavItems = [
                           : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {item.count}
+                      {item.count > 0 ? item.count : null}
                     </span>
                   )}
 
                   {/* Collapsed Count Indicator */}
-                  {isCollapsed && item.count && (
+                  {isCollapsed  && item.count > 0 && (
                     <span
                       className={`absolute -top-1 -right-1 h-5 w-5 text-white text-xs rounded-full flex items-center justify-center shadow-lg ${
                         item.active
@@ -288,7 +292,7 @@ const mainNavItems = [
                           : "bg-red-500"
                       }`}
                     >
-                      {item.count > 9 ? "9+" : item.count}
+                      {item.count > 0 ? item.count : null}
                     </span>
                   )}
                 </button>
@@ -374,6 +378,7 @@ const mainNavItems = [
 
       <WalletModal
         profileDetails={{
+          name: display_name || name || "Anish Gupta",
           username: name || "nativeanish",
           email: `${name || "nativeanish"}@perma.email`,
           photo: image

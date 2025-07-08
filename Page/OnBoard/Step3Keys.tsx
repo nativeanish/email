@@ -18,7 +18,7 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
  const naviage = useNavigate()
   const [generatingKeys, setGeneratingKeys] = useState(false);
   const [progress, setProgress] = useState(0);
-  const { name, image, type, keys, set_keys } = useOnboard();
+  const { name, image, type, keys, set_keys, display_name, bio } = useOnboard();
   const [uploadded, ] = useState(false);
   const {
     open,
@@ -30,7 +30,7 @@ export default function Step3Keys({ onNext, onBack }: Step3Props) {
     close,
   } = useLoading();
   useEffect(() => {
-    if (!(name && image && type)) {
+    if (!(name && image && type && display_name && display_name.length > 0 && display_name.length <= 20 && bio)) {
       onBack();
     }
   }, [name, image, type, onBack]);

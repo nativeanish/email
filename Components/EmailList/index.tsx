@@ -1,31 +1,61 @@
+import { useEffect, useState } from "react";
+import useLoginUser from "../../store/useLoginUser";
 import useTheme from "../../store/useTheme";
-import { Email } from "../../types/email";
+import { Box } from "../../types/user";
+import EmailDetails from "../EmailDetails";
 
 interface EmailListProps {
   isEmailListVisible: boolean;
-  emails: Email[];
-  selectedEmail: Email | null;
-  handleEmailSelect: (email: Email) => void;
+ 
 }
 
 export function EmailList({
   isEmailListVisible,
-  emails,
-  selectedEmail,
-  handleEmailSelect,
 }: EmailListProps) {
+ 
   const theme = useTheme((state) => state.theme);
+  const emails = useLoginUser((state) => state.user)?.mailBox;
   const isDarkMode = theme === "dark";
+  const section = location.pathname.replace(/^\/dashboard\/?/, "");
+  const [box, setBox] = useState<Array<Box>>([])
+  useEffect(() => {
+    console.log("Section changed:", section);
+  if (section === "inbox") {
+    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "inbox"));
+  }
+  else if (section === "sent") {
+    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "sent"));
+  }
+  else if (section === "draft") {
+    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "draft"));
+  }
+  else if (section === "trash") {
+    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "trash"));
+  }
+  else if (section === "archive") {
+    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "archive"));
+  }
+  else if (section === "spam") {
+    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "spam"));
+  }
+  else {
+    setBox([]);
+  }
+  },[section, emails])
+ useEffect(() => {
+ console.log(box)
+  },[box])
+
   return (
     <div
       className={`${
         isEmailListVisible ? "block" : "hidden"
-      } md:block w-full md:w-1/3 border-r ${
+      } md:block w-full md:w-1/4 border-r ${
         isDarkMode ? "border-gray-800" : "border-gray-200"
       } overflow-y-auto`}
     >
       <div
-        className={`flex items-center gap-4 p-4 border-b ${
+        className={`flex items-center gap-4 p-4 border-b overflow-y-auto ${
           isDarkMode ? "border-gray-800" : "border-gray-200"
         }`}
       >
@@ -34,25 +64,7 @@ export function EmailList({
             isDarkMode ? "text-white bg-gray-900" : "text-gray-900 bg-gray-200"
           }`}
         >
-          All Mails
-        </button>
-        <button
-          className={`px-3 py-1 text-sm font-medium ${
-            isDarkMode
-              ? "text-gray-400 hover:text-white"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          Unread
-        </button>
-        <button
-          className={`px-3 py-1 text-sm font-medium ${
-            isDarkMode
-              ? "text-gray-400 hover:text-white"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          Archive
+         Today 
         </button>
       </div>
 
@@ -61,61 +73,11 @@ export function EmailList({
           isDarkMode ? "divide-gray-800" : "divide-gray-200"
         }`}
       >
-        {emails.map((email) => (
-          <button
-            key={email.id}
-            onClick={() => handleEmailSelect(email)}
-            className={`w-full p-4 text-left ${
-              selectedEmail?.id === email.id
-                ? isDarkMode
-                  ? "bg-gray-900"
-                  : "bg-gray-100"
-                : ""
-            } ${isDarkMode ? "hover:bg-gray-900" : "hover:bg-gray-50"}`}
-          >
-            <div className="flex items-start gap-3">
-              <img
-                src={`https://images.unsplash.com/photo-${
-                  email.id + 1
-                }?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80`}
-                alt=""
-                className="h-10 w-10 rounded-full"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p
-                    className={`font-medium truncate ${
-                      email.read
-                        ? isDarkMode
-                          ? "text-gray-300"
-                          : "text-gray-600"
-                        : isDarkMode
-                        ? "text-white"
-                        : "text-gray-900"
-                    }`}
-                  >
-                    {email.from}
-                  </p>
-                  <p className="text-sm text-gray-400">{email.date}</p>
-                </div>
-                <p
-                  className={`text-sm font-medium truncate ${
-                    email.read
-                      ? "text-gray-400"
-                      : isDarkMode
-                      ? "text-white"
-                      : "text-gray-900"
-                  }`}
-                >
-                  {email.subject}
-                </p>
-                <p className="text-sm text-gray-400 truncate">
-                  {email.preview}
-                </p>
-              </div>
-            </div>
-          </button>
-        ))}
+        {box && box.length > 0 ? (
+          box.map((email: Box) => (
+            <EmailDetails key={email.id} box={email} selectedEmail={email}/>
+          ))
+        ): null}
       </div>
     </div>
   );

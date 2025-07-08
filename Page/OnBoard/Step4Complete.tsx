@@ -4,12 +4,14 @@ import { CheckCircle, ArrowRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import useOnboard from "../../store/useOnboard"
 import { useWalletStore } from "../../store/useWallet"
+import ArConnect from "../../Image/Wander"
 
 export default function Step4Complete() {
-  const { type: emailType, name, image, image_type } = useOnboard()
-  const { address, connectedWallet:walletType } = useWalletStore()
+  const { type: emailType, name, image, image_type, display_name } = useOnboard()
+  const { address, connectedWallet: walletType } = useWalletStore()
   const navigate = useNavigate()
   const [emailAddress, setEmailAddress] = useState("")
+
   useEffect(() => {
     // Generate email address based on email type and wallet
     if (emailType === "arns") {
@@ -54,7 +56,6 @@ export default function Step4Complete() {
             <CheckCircle className="h-16 w-16 text-green-500" />
           </div>
         </motion.div>
-
         <h2 className="text-3xl font-bold mb-4 tracking-tight">Setup Complete!</h2>
         <p className="text-gray-400 mb-6">Your decentralized email account has been successfully created.</p>
       </motion.div>
@@ -67,27 +68,30 @@ export default function Step4Complete() {
           transition={{ duration: 0.5, delay: 0.6 }}
         >
           <h3 className="text-lg font-medium mb-4">Your Email Details</h3>
-
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-700 flex-shrink-0">
                 {image_type === "url" || image_type === "file" ? (
-                  <img
-                    src={`https://arweave.net/${image}`}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={`https://arweave.net/${image}`} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-zinc-700" />
                 )}
               </div>
               <div>
-                <p className="text-sm text-gray-400 mb-1">Display Name</p>
+                <p className="text-sm text-gray-400 mb-1">Username</p>
                 {name && name.length > 16 ? (
                   <p className="font-medium">{name.slice(0, 16)}...</p>
                 ) : (
                   <p className="font-medium">{name || "Loading..."}</p>
                 )}
+              </div>
+            </div>
+
+            {/* New Name section */}
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Name</p>
+              <div className="bg-zinc-900 p-3 rounded-lg">
+                <p className="font-medium">{display_name || "Not set"}</p>
               </div>
             </div>
 
@@ -97,12 +101,12 @@ export default function Step4Complete() {
                 {emailAddress || "Loading..."}
               </div>
             </div>
-
             <div>
-              <p className="text-sm text-gray-400 mb-1">Wallet</p>
+              <p className="text-sm text-gray-400 mb-1">
+                Wallet</p>
               <div className="flex items-center gap-2">
-                <p className="font-medium">{walletType || "Loading..."}</p>
-                <span className="bg-green-500/20 text-green-500 text-xs px-2 py-0.5 rounded-full">Connected</span>
+                <p className="font-medium flex flex-row gap-2 items-center"><ArConnect />{walletType || "Loading..."}</p>
+                <span className="bg-green-500/20 text-green-500 text-xs px-2 py-0.5 mt-1 rounded-full">Connected</span>
               </div>
             </div>
           </div>
@@ -128,4 +132,3 @@ export default function Step4Complete() {
     </>
   )
 }
-

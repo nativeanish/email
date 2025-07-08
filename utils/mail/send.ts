@@ -39,7 +39,7 @@ export async function sendEmail(body: string) {
     const email = [...to, ...cc, ...bcc].map(({ email }) => email);
     const message = await dryRun([
       {
-        name: "getByEmail",
+        name: "getByEmails",
         value: JSON.stringify(email),
       },
     ]);
