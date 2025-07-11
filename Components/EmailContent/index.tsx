@@ -1,4 +1,4 @@
-import { Email } from "../../types/email";
+import type { Email } from "../../types/email";
 import NewMessage from "../NewMessage";
 import EC from "./EC";
 
@@ -17,28 +17,17 @@ export function EmailContent({
 }: EmailContentProps) {
   return (
     <div
-      className={`${
-        !isEmailListVisible ? "block" : "hidden"
-      } md:block flex-1 overflow-hidden p-4 md:p-6 ${
+      className={`${!isEmailListVisible ? "block" : "hidden"} md:block flex-1 ${
         isDarkMode ? "bg-[#141414]" : "bg-white"
       }`}
     >
-      {isNewMessageOpen ? (
-        <NewMessage isDarkMode={isDarkMode} />
-      ) : (
-        <div>
-          <EC />
-        </div>
-      )}
-      {/* {isNewMessageOpen ? (
-        <NewMessage isDarkMode={isDarkMode} />
-      ) : selectedEmail ? (
-        
-      ) : (
-        <div className="h-full flex items-center justify-center text-gray-400">
-          Select an email to read
-        </div>
-      )} */}
+      <div className="h-full p-4 md:p-6">
+        {isNewMessageOpen ? (
+          <NewMessage isDarkMode={isDarkMode} />
+        ) : (
+          <EC isDarkMode={isDarkMode} />
+        )}
+      </div>
     </div>
   );
 }

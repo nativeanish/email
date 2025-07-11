@@ -1,253 +1,141 @@
-import { Download, Send, Archive, Forward, ShieldAlert } from "lucide-react";
-function EC() {
+"use client";
+
+import {
+  Download,
+  Send,
+  Archive,
+  OctagonAlert,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Forward,
+} from "lucide-react";
+import { useState } from "react";
+
+function EC({ isDarkMode }: { isDarkMode: boolean }) {
+  const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
   return (
     <div className="h-full flex flex-col">
-      {/* Pink Header Section */}
-      <div className="flex-shrink-0 bg-pink-300 p-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* Fixed Header Section */}
+      <div className="flex-shrink-0 mb-4">
+        <div
+          className={`flex items-center justify-between border-b pb-2 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg px-2 -mx-2 ${
+            isDarkMode
+              ? "border-gray-800 text-gray-50 hover:bg-gray-800"
+              : "border-gray-200 text-gray-800"
+          }`}
+          onClick={() => setIsHeaderExpanded(!isHeaderExpanded)}
+        >
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-800">Subject</h3>
+            <h3
+              className={`text-lg font-semibold ${
+                isHeaderExpanded ? "" : "line-clamp-2"
+              }`}
+            >
+              Hello, this is me Anish Gupta, what sbaouasdjfkajsflkajsdfkl
+              akjsdfjaksdf ajsdif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj
+              kasdfjk asdfjkasdfjkasdfjkasdf
+              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa sdfasd
+              fasdfasdfasdf dif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj
+              kasdfjk asdfjkasdfjkasdfjkasdf
+              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa
+              sdfasddif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj kasdfjk
+              asdfjkasdfjkasdfjkasdf
+              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa
+              sdfasddif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj kasdfjk
+              asdfjkasdfjkasdfjkasdf
+              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa sdfasddif
+              asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj kasdfjk
+              asdfjkasdfjkasdfjkasdf
+              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa sdfasd
+            </h3>
           </div>
-          <div className="text-sm text-gray-700">
-            icons for download, forward, move to spam, move to archive
+          <div className="ml-2 flex-shrink-0">
+            {isHeaderExpanded ? (
+              <ChevronUp className="h-5 w-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-gray-500" />
+            )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-800">From</h3>
-          </div>
-          <div className="flex-1 text-right">
-            <h3 className="text-lg font-semibold text-gray-800">Date</h3>
-          </div>
-        </div>
-
-        {/* Action Icons */}
-        <div className="flex items-center justify-end gap-2 mt-4">
-          <button className="p-2 hover:bg-pink-400 rounded-lg transition-colors">
-            <Download className="h-5 w-5 text-gray-700" />
-          </button>
-          <button className="p-2 hover:bg-pink-400 rounded-lg transition-colors">
-            <Forward className="h-5 w-5 text-gray-700" />
-          </button>
-          <button className="p-2 hover:bg-pink-400 rounded-lg transition-colors">
-            <ShieldAlert className="h-5 w-5 text-gray-700" />
-          </button>
-          <button className="p-2 hover:bg-pink-400 rounded-lg transition-colors">
-            <Archive className="h-5 w-5 text-gray-700" />
-          </button>
-        </div>
-      </div>
-
-      {/* White Content Area */}
-      <div
-        className="flex-1 bg-white overflow-y-auto p-8 min-h-0"
-        style={{ maxHeight: "60vh" }}
-      >
-        <div className="max-w-none prose">
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-medium text-gray-800 mb-4">
-              Email content to display (it could have a scroll bar if the
-              content is overflow, not the outside window or main scroll bar to
-              have
-            </h2>
-          </div>
-
-          {/* Sample long content to demonstrate scrolling */}
-          <div className="space-y-4 text-gray-700">
-            <p>Hi John,</p>
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-
-            {/* Repeated content to show scrolling */}
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-
-            {/* Additional content to ensure scrolling */}
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-
-            <p>
-              I hope this message finds you well! I'm reaching out to explore a
-              potential partnership between our companies. At Jane Corp, which
-              could complement your offerings at John Organisation Corp.
-            </p>
-            <p>
-              I've attached a proposal detailing how we envision our
-              collaboration, including key benefits, timelines, and
-              implementation strategies. I believe this partnership could unlock
-              exciting opportunities for both of us!
-            </p>
-            <p>
-              Let me know your thoughts or a convenient time to discuss this
-              further. I'm happy to schedule a call or meeting at your earliest
-              convenience.
-            </p>
-            <p>Looking forward to hearing from you!</p>
-            <p>
-              Best regards,
-              <br />
-              Jane
-            </p>
-
-            <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-              <div className="flex items-center gap-2 text-gray-600">
-                <Download className="h-5 w-5" />
-                <span className="font-medium">Proposal-Partnership.pdf</span>
-                <span className="text-sm text-gray-500">1.5 MB</span>
+        <div
+          className={`flex items-center justify-between mt-3 pb-2 border-b ${
+            isDarkMode
+              ? "text-gray-50 border-gray-800"
+              : "text-gray-800 border-gray-200"
+          }`}
+        >
+          <div className="flex-1 font-semibold">
+            <div className="flex items-center gap-2">
+              <img
+                src="https://images.pexels.com/photos/32392457/pexels-photo-32392457.jpeg"
+                alt="Profile"
+                className={`w-12 h-12 rounded-full border-2 ${
+                  isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
+              />
+              <div>
+                <p>Anish Gupta | {"<nativeanish@gmail.com>"}</p>
+                <p className="text-sm text-gray-500">10th July</p>
               </div>
             </div>
           </div>
+          <div
+            className={`flex items-center justify-end gap-2 ${
+              isDarkMode ? "text-gray-300" : "text-gray-800"
+            }`}
+          >
+            <button
+              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
+              title="Download"
+            >
+              <Download className="h-5 w-5" />
+            </button>
+            <button
+              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
+              title="Archive"
+            >
+              <Archive className="h-5 w-5" />
+            </button>
+            <button
+              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
+              title="Spam"
+            >
+              <OctagonAlert className="h-5 w-5" />
+            </button>
+            <button
+              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
+              title="Delete"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Green Footer Section */}
-      <div className="flex-shrink-0 bg-lime-400">
-        <div className="text-center">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">
-            Reply Box with Reply Button
-          </h3>
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex-1 max-w-md">
-              <textarea
-                className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                rows={3}
-                placeholder="Type your reply here..."
-              />
-            </div>
-            <button className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
-              <Send className="h-5 w-5" />
-              Reply
-            </button>
-          </div>
+      {/* THIS IS THE SCROLLABLE CONTENT AREA */}
+      <div
+        className={`flex-1 overflow-y-auto p-6 border rounded-lg min-h-0 ${
+          isDarkMode
+            ? " border-gray-700 text-gray-100"
+            : " border-gray-300 text-gray-800"
+        }`}
+      >
+        <h1>Hello, World dfasd fasdf asdfasdfasd fasdf</h1>
+      </div>
+
+      {/* Fixed Footer Section */}
+      <div className="flex-shrink-0 pt-4">
+        <div className="flex items-center justify-end gap-2">
+          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
+            <Send className="h-5 w-5" />
+            Reply
+          </button>
+          <button className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
+            <Forward className="h-5 w-5" />
+            Forward
+          </button>
         </div>
       </div>
     </div>
