@@ -1,8 +1,5 @@
-"use client";
-
 import {
   Download,
-  Send,
   Archive,
   OctagonAlert,
   Trash2,
@@ -11,8 +8,14 @@ import {
   Forward,
 } from "lucide-react";
 import { useState } from "react";
+import Modal from "../UI/Modal";
+import { Reply as Rep } from "lucide-react";
+import Reply from "./Reply";
+import ForwardComponent from "./Forward";
 
 function EC({ isDarkMode }: { isDarkMode: boolean }) {
+  const [showModal, setShowModal] = useState(false);
+  const [showForwardModal, setShowForwardModal] = useState(false);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
   return (
     <div className="h-full flex flex-col">
@@ -128,16 +131,55 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
       {/* Fixed Footer Section */}
       <div className="flex-shrink-0 pt-4">
         <div className="flex items-center justify-end gap-2">
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors">
-            <Send className="h-5 w-5" />
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+            onClick={() => setShowModal(true)}
+          >
+            <Rep className="h-5 w-5" />
             Reply
           </button>
-          <button className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
+          <button
+            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+            onClick={() => setShowForwardModal(true)}
+          >
             <Forward className="h-5 w-5" />
             Forward
           </button>
         </div>
       </div>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Reply to Anish Gupta | <nativeanish@gmail.com>"
+        size="xl"
+        closeOnBackdropClick={false}
+        closeOnEscape={false}
+        showCloseButton={false}
+        theme={isDarkMode ? "dark" : "light"}
+      >
+        <Reply
+          isDarkMode={isDarkMode}
+          closeModal={() => setShowModal(false)}
+          _subject="Hello"
+        />
+      </Modal>
+
+      <Modal
+        isOpen={showForwardModal}
+        onClose={() => setShowForwardModal(false)}
+        title="Forward Message"
+        size="xl"
+        closeOnBackdropClick={false}
+        closeOnEscape={false}
+        showCloseButton={false}
+        theme={isDarkMode ? "dark" : "light"}
+      >
+        <ForwardComponent
+          isDarkMode={isDarkMode}
+          closeModal={() => setShowForwardModal(false)}
+          _subject="Hello"
+        />
+      </Modal>
     </div>
   );
 }
