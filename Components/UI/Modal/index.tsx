@@ -162,7 +162,10 @@ const Modal: React.FC<ModalProps> = ({
                 className={`flex items-center justify-between p-6 border-b ${currentTheme.header}`}
               >
                 {title && (
-                  <h2 id="modal-title" className="text-xl font-semibold">
+                  <h2
+                    id="modal-title"
+                    className="text-xl font-semibold truncate"
+                  >
                     {title}
                   </h2>
                 )}

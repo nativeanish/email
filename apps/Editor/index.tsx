@@ -18,7 +18,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
-import { AutoLinkNode, LinkNode } from "@lexical/link"
+import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import SlashCommandPlugin from "./Plugin/SlashCommandPlugin";
 import useEditor from "../../store/useEditor";
@@ -65,13 +65,17 @@ function onChange(e: EditorState) {
     const selection = $getSelection();
     if ($isRangeSelection(selection)) {
       const anchorNode = selection.anchor.getNode();
-      const blockNode = anchorNode.getTopLevelElementOrThrow();
-      const alignment = blockNode.getFormatType();
-      if (!alignment || alignment === "left") {
+      const blockNode =
+        anchorNode.getKey() === "root"
+          ? anchorNode
+          : anchorNode.getTopLevelElementOrThrow();
+      const alignment = blockNode.getFormat();
+      // Lexical uses 0 for left, 1 for center, 2 for right
+      if (!alignment || alignment === 0) {
         usePragraph.setState({ align: "left" });
-      } else if (alignment === "center") {
+      } else if (alignment === 1) {
         usePragraph.setState({ align: "center" });
-      } else if (alignment === "right") {
+      } else if (alignment === 2) {
         usePragraph.setState({ align: "right" });
       }
 
@@ -121,18 +125,26 @@ export default function Editor({ isDarkMode }: { isDarkMode: boolean }) {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  className={`w-full min-h-full h-full px-0 py-2 border-none focus:outline-none ${isDarkMode ? "bg-[#141414] text-white" : "bg-white text-black"
-                    }`}
+                  className={`w-full min-h-full h-full px-0 py-2 border-none focus:outline-none ${
+                    isDarkMode
+                      ? "bg-[#141414] text-white"
+                      : "bg-white text-black"
+                  }`}
                   style={{ resize: "none" }}
                 />
               }
               placeholder={
                 showPlaceholder ? (
                   <div
-                    className={`absolute top-0 px-0 py-2 pointer-events-none ${align === "left" ? "left-0" : ""
-                      } ${align === "center" ? "left-1/2 -translate-x-1/2" : ""
-                      } ${align === "right" ? "right-0" : ""} ${isDarkMode ? "bg-[#141414] text-white" : "bg-white text-black"
-                      }`}
+                    className={`absolute top-0 px-0 py-2 pointer-events-none ${
+                      align === "left" ? "left-0" : ""
+                    } ${
+                      align === "center" ? "left-1/2 -translate-x-1/2" : ""
+                    } ${align === "right" ? "right-0" : ""} ${
+                      isDarkMode
+                        ? "bg-[#141414] text-white"
+                        : "bg-white text-black"
+                    }`}
                     style={{
                       fontSize: "16px",
                       fontWeight: "400",

@@ -12,11 +12,31 @@ import Modal from "../UI/Modal";
 import { Reply as Rep } from "lucide-react";
 import Reply from "./Reply";
 import ForwardComponent from "./Forward";
+import { mail } from "../../store/useMailStorage";
+import DOMPurify from "dompurify";
 
-function EC({ isDarkMode }: { isDarkMode: boolean }) {
+interface Props {
+  mail: mail;
+  User: {
+    username: string;
+    address: string;
+    image: string;
+    name: string;
+  };
+  isDarkMode: boolean;
+}
+
+function EC({ mail, User, isDarkMode }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
+  const subject = DOMPurify.sanitize(mail.subject || "No Subject");
+  const body = DOMPurify.sanitize(mail.body || "No Content");
+  const time = DOMPurify.sanitize(mail.delivered_time.toString());
+  const image = DOMPurify.sanitize(User.image);
+  const name = DOMPurify.sanitize(User.name || "Unknown User");
+  const address = DOMPurify.sanitize(User.address || "Unknown Address");
+  const mainName = name ? name + " | " + address : address;
   return (
     <div className="h-full flex flex-col">
       {/* Fixed Header Section */}
@@ -35,22 +55,7 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
                 isHeaderExpanded ? "" : "line-clamp-2"
               }`}
             >
-              Hello, this is me Anish Gupta, what sbaouasdjfkajsflkajsdfkl
-              akjsdfjaksdf ajsdif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj
-              kasdfjk asdfjkasdfjkasdfjkasdf
-              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa sdfasd
-              fasdfasdfasdf dif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj
-              kasdfjk asdfjkasdfjkasdfjkasdf
-              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa
-              sdfasddif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj kasdfjk
-              asdfjkasdfjkasdfjkasdf
-              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa
-              sdfasddif asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj kasdfjk
-              asdfjkasdfjkasdfjkasdf
-              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa sdfasddif
-              asdkjfasdjkf asdf jkasdf jkasdfjkas dfjkasdfj kasdfjk
-              asdfjkasdfjkasdfjkasdf
-              asdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdfjkasdffa sdfasd
+              {subject || "No Subject"}
             </h3>
           </div>
           <div className="ml-2 flex-shrink-0">
@@ -72,15 +77,15 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
           <div className="flex-1 font-semibold">
             <div className="flex items-center gap-2">
               <img
-                src="https://images.pexels.com/photos/32392457/pexels-photo-32392457.jpeg"
+                src={`https://arweave.net/${image}`}
                 alt="Profile"
                 className={`w-12 h-12 rounded-full border-2 ${
                   isDarkMode ? "border-gray-700" : "border-gray-200"
                 }`}
               />
               <div>
-                <p>Anish Gupta | {"<nativeanish@gmail.com>"}</p>
-                <p className="text-sm text-gray-500">10th July</p>
+                <p>{mainName}</p>
+                <p className="text-sm text-gray-500">{formatEmailDate(time)}</p>
               </div>
             </div>
           </div>
@@ -124,9 +129,8 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
             ? " border-gray-700 text-gray-100"
             : " border-gray-300 text-gray-800"
         }`}
-      >
-        <h1>Hello, World dfasd fasdf asdfasdfasd fasdf</h1>
-      </div>
+        dangerouslySetInnerHTML={{ __html: body }}
+      ></div>
 
       {/* Fixed Footer Section */}
       <div className="flex-shrink-0 pt-4">
@@ -150,7 +154,7 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        title="Reply to Anish Gupta | <nativeanish@gmail.com>"
+        title={mainName}
         size="xl"
         closeOnBackdropClick={false}
         closeOnEscape={false}
@@ -160,7 +164,7 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
         <Reply
           isDarkMode={isDarkMode}
           closeModal={() => setShowModal(false)}
-          _subject="Hello"
+          _subject={subject}
         />
       </Modal>
 
@@ -178,6 +182,7 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
           isDarkMode={isDarkMode}
           closeModal={() => setShowForwardModal(false)}
           _subject="Hello"
+          data={{ type: "text/html", data: body }}
         />
       </Modal>
     </div>
@@ -185,3 +190,57 @@ function EC({ isDarkMode }: { isDarkMode: boolean }) {
 }
 
 export default EC;
+function formatEmailDate(timestamp: string | number): string {
+  const date = new Date(Number(timestamp)); // Accepts both string and number
+  const now = new Date();
+
+  const formatTime = (d: Date) =>
+    d.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+  const getDaySuffix = (day: number) => {
+    if (day >= 11 && day <= 13) return "th";
+    switch (day % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  };
+
+  const isSameDay = (d1: Date, d2: Date) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+
+  const time = formatTime(date);
+  const day = date.getDate();
+  const suffix = getDaySuffix(day);
+  const monthName = date.toLocaleString("default", { month: "long" });
+
+  if (isSameDay(date, now)) {
+    return `Today, ${time}`;
+  }
+
+  if (isSameDay(date, tomorrow)) {
+    return `Tomorrow, ${time}`;
+  }
+
+  const sameYear = date.getFullYear() === now.getFullYear();
+
+  if (sameYear) {
+    return `${day}${suffix} ${monthName}, ${time}`;
+  }
+
+  return `${day} ${monthName}, ${date.getFullYear()}, ${time}`;
+}

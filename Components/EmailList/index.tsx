@@ -3,48 +3,37 @@ import useLoginUser from "../../store/useLoginUser";
 import useTheme from "../../store/useTheme";
 import { Box } from "../../types/user";
 import EmailDetails from "../EmailDetails";
+import { useParams } from "react-router-dom";
 
 interface EmailListProps {
   isEmailListVisible: boolean;
- 
 }
 
-export function EmailList({
-  isEmailListVisible,
-}: EmailListProps) {
- 
+export function EmailList({ isEmailListVisible }: EmailListProps) {
   const theme = useTheme((state) => state.theme);
   const emails = useLoginUser((state) => state.user)?.mailBox;
   const isDarkMode = theme === "dark";
-  const section = location.pathname.replace(/^\/dashboard\/?/, "");
-  const [box, setBox] = useState<Array<Box>>([])
+  const section = useParams().slug;
+  const [box, setBox] = useState<Array<Box>>([]);
   useEffect(() => {
-    console.log("Section changed:", section);
-  if (section === "inbox") {
-    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "inbox"));
-  }
-  else if (section === "sent") {
-    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "sent"));
-  }
-  else if (section === "draft") {
-    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "draft"));
-  }
-  else if (section === "trash") {
-    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "trash"));
-  }
-  else if (section === "archive") {
-    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "archive"));
-  }
-  else if (section === "spam") {
-    setBox((emails ?? []).filter((email: Box) => email.tags[0] === "spam"));
-  }
-  else {
-    setBox([]);
-  }
-  },[section, emails])
- useEffect(() => {
- console.log(box)
-  },[box])
+    if (section === "inbox") {
+      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "inbox"));
+    } else if (section === "sent") {
+      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "sent"));
+    } else if (section === "draft") {
+      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "draft"));
+    } else if (section === "trash") {
+      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "trash"));
+    } else if (section === "archive") {
+      setBox(
+        (emails ?? []).filter((email: Box) => email.tags[0] === "archive")
+      );
+    } else if (section === "spam") {
+      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "spam"));
+    } else {
+      setBox([]);
+    }
+  }, [section, emails]);
 
   return (
     <div
@@ -64,7 +53,7 @@ export function EmailList({
             isDarkMode ? "text-white bg-gray-900" : "text-gray-900 bg-gray-200"
           }`}
         >
-         Today 
+          Today
         </button>
       </div>
 
@@ -73,11 +62,11 @@ export function EmailList({
           isDarkMode ? "divide-gray-800" : "divide-gray-200"
         }`}
       >
-        {box && box.length > 0 ? (
-          box.map((email: Box) => (
-            <EmailDetails key={email.id} box={email} selectedEmail={email}/>
-          ))
-        ): null}
+        {box && box.length > 0
+          ? box.map((email: Box) => (
+              <EmailDetails key={email.id} box={email} selectedEmail={email} />
+            ))
+          : null}
       </div>
     </div>
   );

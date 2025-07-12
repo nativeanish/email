@@ -28,7 +28,7 @@ function App() {
 
           {/* Dashboard pages wrapped with Layout */}
           <Route element={<Layout />}>
-            <Route path="/dashboard/:slug" element={<Inbox />} />
+            <Route path="/dashboard/:slug/:id?" element={<Inbox />} />
           </Route>
         </Routes>
 

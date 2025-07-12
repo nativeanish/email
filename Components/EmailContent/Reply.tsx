@@ -10,6 +10,7 @@ interface Props {
 }
 function Reply({ isDarkMode, _subject, closeModal }: Props) {
   const [subject, setSubject] = useState("Re: " + _subject);
+
   return (
     <div>
       <div className="flex flex-col">

@@ -13,6 +13,7 @@
     "@ar.io/arbundles": "^1.0.1",
     "@permaweb/aoconnect": "0.0.62",
     "crypto-browserify": "^3.12.1",
+    "dompurify": "^3.2.6",
     "events": "^3.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

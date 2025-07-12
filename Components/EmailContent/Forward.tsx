@@ -3,11 +3,16 @@ import Editor from "../../apps/Editor";
 import Align from "../../apps/Editor/ToolBar/Component/Align";
 import EmojiPickerButton from "../../apps/Editor/ToolBar/Component/Emoji";
 import { Forward as ForwardIcon, XCircle, X } from "lucide-react";
+import useEditor from "../../store/useEditor";
+import { $getRoot, LexicalEditor } from "lexical";
+import { $generateNodesFromDOM } from "@lexical/html";
+import { reverseInlineTailwind } from "../../utils/inline";
 
 interface Props {
   isDarkMode: boolean;
   _subject: string;
   closeModal: () => void;
+  data: { data: string; type: "text/html" | "text/plain" };
 }
 const emails: string[] = [
   "alice@example.com",
@@ -31,7 +36,7 @@ const emails: string[] = [
   "sybil@data.net",
   "trent@domain.org",
 ];
-function Forward({ isDarkMode, _subject, closeModal }: Props) {
+function Forward({ isDarkMode, _subject, closeModal, data }: Props) {
   const [subject, setSubject] = useState("Fwd: " + _subject);
   const [emailInput, setEmailInput] = useState("");
   const [emailList, setEmailList] = useState<string[]>([]);
@@ -42,7 +47,26 @@ function Forward({ isDarkMode, _subject, closeModal }: Props) {
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const inputRef = useRef<HTMLDivElement>(null);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+  const editor = useEditor((state) => state.editor);
+  useEffect(() => {
+    if (data.type === "text/plain") {
+      data.data = `<p>${data.data}</p>`;
+    }
+    if (data.type === "text/html") {
+      if (!editor) {
+        return;
+      }
+      editor.update(() => {
+        const nodes = convertHtmlToLexicalNodes(
+          reverseInlineTailwind(data.data),
+          editor
+        );
+        const root = $getRoot();
+        root.clear(); // optional: clear current content
+        nodes.forEach((node) => root.append(node));
+      });
+    }
+  }, [data, editor]);
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -321,3 +345,9 @@ function Forward({ isDarkMode, _subject, closeModal }: Props) {
 }
 
 export default Forward;
+function convertHtmlToLexicalNodes(html: string, editor: LexicalEditor) {
+  const parser = new DOMParser();
+  const dom = parser.parseFromString(html, "text/html");
+  const nodes = $generateNodesFromDOM(editor, dom);
+  return nodes;
+}
