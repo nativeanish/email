@@ -17,19 +17,37 @@ export function EmailList({ isEmailListVisible }: EmailListProps) {
   const [box, setBox] = useState<Array<Box>>([]);
   useEffect(() => {
     if (section === "inbox") {
-      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "inbox"));
+      setBox(
+        (emails ?? []).filter((email: Box) => {
+          return email.tags.length === 1 && email.tags[0] === "inbox";
+        })
+      );
     } else if (section === "sent") {
-      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "sent"));
+      setBox(
+        (emails ?? []).filter((email: Box) => {
+          return email.tags.length === 1 && email.tags[0] === "sent";
+        })
+      );
     } else if (section === "draft") {
-      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "draft"));
+      setBox([]);
     } else if (section === "trash") {
-      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "trash"));
+      setBox(
+        (emails ?? []).filter((email: Box) => {
+          return email.tags.length === 2 && email.tags[1] === "trash";
+        })
+      );
     } else if (section === "archive") {
       setBox(
-        (emails ?? []).filter((email: Box) => email.tags[0] === "archive")
+        (emails ?? []).filter((email: Box) => {
+          return email.tags.length === 2 && email.tags[1] === "archive";
+        })
       );
     } else if (section === "spam") {
-      setBox((emails ?? []).filter((email: Box) => email.tags[0] === "spam"));
+      setBox(
+        (emails ?? []).filter((email: Box) => {
+          return email.tags.length === 2 && email.tags[1] === "spam";
+        })
+      );
     } else {
       setBox([]);
     }

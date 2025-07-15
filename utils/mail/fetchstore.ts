@@ -6,15 +6,12 @@ import dryRun from "../aos/core/dryRun";
 export const fetchstore = async (box: Box) => {
   const ms = useMailStorage.getState();
   const key = useLoginUser.getState().user?.privateKey;
-      const parsedEmail = parseEmail(box.from);
+  const parsedEmail = parseEmail(box.from);
   try {
-    if (!ms.ifMailExists(box.data, box.id) && key) {
-      const data = JSON.parse(await decryptFromSender(
-        key,
-        box.data.data,
-        box.data.iv,
-        box.data.key
-      )) as {subject:string, body:string, from ?: string}
+    if (!ms.ifMailExists(box.data, box.id, box.tags) && key) {
+      const data = JSON.parse(
+        await decryptFromSender(key, box.data.data, box.data.iv, box.data.key)
+      ) as { subject: string; body: string; from?: string };
       console.log("Decrypted data:", data);
       if (
         parsedEmail.valid &&
@@ -32,12 +29,12 @@ export const fetchstore = async (box: Box) => {
               ])
             ).Messages[0].Data
           ) as { status: 0 | 1; data: User };
-          if(user.status === 1 && user.data) {
+          if (user.status === 1 && user.data) {
             ms.setUser({
               username: parsedEmail.user,
               address: box.from,
               image: user.data.image,
-              name: user.data.name
+              name: user.data.name,
             });
             ms.setMail({
               id: box.id,
@@ -49,8 +46,8 @@ export const fetchstore = async (box: Box) => {
               seen: box.seen,
               tags: box.tags,
               body: data.body,
-              subject: data.subject
-            })
+              subject: data.subject,
+            });
             return {
               id: box.id,
               from: box.from,
@@ -59,27 +56,31 @@ export const fetchstore = async (box: Box) => {
               image: user.data.image,
               name: user.data.name,
               seen: box.seen,
-              date: box.delivered_time
-            }
-          } 
+              date: box.delivered_time,
+            };
+          }
         }
       }
-    }else{
+    } else {
       const mail = ms.getMail(box.id);
-      if(mail){
-        if (parsedEmail.valid && parsedEmail.user && parsedEmail.domain === "perma.email") {
+      if (mail) {
+        if (
+          parsedEmail.valid &&
+          parsedEmail.user &&
+          parsedEmail.domain === "perma.email"
+        ) {
           const user = ms.getUser(parsedEmail.user, box.from);
           if (user) {
-           return {
-            id: box.id,
-            from: box.from,
-            subject: mail.subject,
-            body: mail.body,
-            image: user.image,
-            name: user.name,
-            seen: box.seen,
-            date: box.delivered_time
-           } 
+            return {
+              id: box.id,
+              from: box.from,
+              subject: mail.subject,
+              body: mail.body,
+              image: user.image,
+              name: user.name,
+              seen: box.seen,
+              date: box.delivered_time,
+            };
           }
         }
       }

@@ -36,11 +36,24 @@ export function EmailContent({
   useEffect(() => {
     if (id && slug) {
       const mail = mailStorage.getMail(id);
-      if (mail && mail.id === id && mail.tags[0] === slug) {
+      console.log(mail, slug);
+      if (mail && mail.id === id) {
         const user = mailStorage.getUserFrom(mail.from);
         if (user && user.address === mail.from) {
-          setSelectedEmail({ mail, user });
-          return;
+          console.log(slug, mail.tags);
+          if ((slug === "inbox" || slug === "sent") && mail.tags.length === 1) {
+            setSelectedEmail({ mail, user });
+            return;
+          } else if (
+            (slug === "trash" || slug === "archive" || slug === "spam") &&
+            mail.tags.length === 2
+          ) {
+            setSelectedEmail({ mail, user });
+            return;
+          } else {
+            setSelectedEmail(false);
+            return;
+          }
         }
       }
       setSelectedEmail(false);

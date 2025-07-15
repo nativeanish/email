@@ -1,53 +1,16 @@
-import { Box } from "../../types/user";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEmailDetails } from "../../hooks/useEmailDetails";
 import useTheme from "../../store/useTheme";
-import { useNavigate, useParams } from "react-router-dom";
+import { Box } from "../../types/user";
+import { formatEmailDate } from ".";
 import { useEffect } from "react";
-export function formatEmailDate(timestamp: number | string): string {
-  const ms = typeof timestamp === "string" ? Number(timestamp) : timestamp;
-  if (!Number.isFinite(ms)) return "";
 
-  const date = new Date(ms);
-  if (isNaN(date.getTime())) return "";
-
-  const now = new Date();
-
-  const sameDay =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
-
-  if (sameDay) {
-    return date.toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  }
-
-  if (date.getFullYear() === now.getFullYear()) {
-    return date.toLocaleDateString(undefined, {
-      month: "long",
-      day: "numeric",
-    });
-  }
-
-  return date.toLocaleDateString("en-GB");
-}
-function EmailDetails({
-  box,
-  selectedEmail = box,
-}: {
-  box: Box;
-  selectedEmail: Box;
-}) {
+function From({ box, selectedEmail = box }: { box: Box; selectedEmail: Box }) {
   const { user, loading, hasError, isEmpty } = useEmailDetails(box);
   const isDarkMode = useTheme((state) => state.theme) === "dark";
   const { slug } = useParams();
   const navigate = useNavigate();
-  useEffect(() => {
-    console.log(box);
-  }, [box]);
+  useEffect(() => {}, [box]);
   if (loading) {
     return (
       <div
@@ -139,4 +102,4 @@ function EmailDetails({
   );
 }
 
-export default EmailDetails;
+export default From;

@@ -13,14 +13,14 @@ import useTheme from "../../store/useTheme";
 import useSideBar from "../../store/useSideBar";
 import WalletModal from "../WalletModal";
 import useMessage from "../../store/useMessage";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import useLoginUser from "../../store/useLoginUser";
 
 export function Sidebar({
   name,
   image,
   bio,
-  display_name
+  display_name,
 }: {
   name?: string;
   image?: string;
@@ -34,21 +34,62 @@ export function Sidebar({
   const [showWalletModal, setShowWalletModal] = useState(false);
   const { show, setShow } = useMessage();
   const email = useLoginUser((state) => state.user?.mailBox) || [];
-
+  const { user } = useLoginUser();
   const setIsSidebarOpen = (open: boolean) => {
     setSidebar(open);
   };
-const location = useLocation();
-const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { slug } = useParams();
 
-const mainNavItems = [
-  { icon: Mail, label: "Inbox", path: "/dashboard/inbox", count:email.filter((e) => e.tags[0] === "inbox").length, active: location.pathname === "/dashboard/inbox" },
-  { icon: Send, label: "Sent", path: "/dashboard/sent", count: email.filter((e) => e.tags[0] === "sent").length, active: location.pathname === "/dashboard/sent" },
-  { icon: File, label: "Draft", path: "/dashboard/draft", count: email.filter((e) => e.tags[0] === "draft").length, active: location.pathname === "/dashboard/draft" },
-  { icon: Archive, label: "Archive", path: "/dashboard/archive",count: email.filter((e) => e.tags[0] === "archive").length, active: location.pathname === "/dashboard/archive" }, // Add this route if needed
-  { icon: Trash2, label: "Bin", path: "/dashboard/trash", count:email.filter((e) => e.tags[0] === "bin").length, active: location.pathname === "/dashboard/trash" },
-  { icon: AlertTriangle, label: "Spam", path: "/dashboard/spam",count: email.filter((e) => e.tags[0] === "spam").length, active: location.pathname === "/dashboard/spam" },
-];
+  const mainNavItems = [
+    {
+      icon: Mail,
+      label: "Inbox",
+      path: "/dashboard/inbox",
+      count: email.filter((e) => e.tags.length === 1 && e.tags[0] === "inbox")
+        .length,
+      active: slug === "inbox",
+    },
+    {
+      icon: Send,
+      label: "Sent",
+      path: "/dashboard/sent",
+      count: email.filter((e) => e.tags.length === 1 && e.tags[0] === "sent")
+        .length,
+      active: slug === "sent",
+    },
+    {
+      icon: File,
+      label: "Draft",
+      path: "/dashboard/draft",
+      count: user?.draft.length || 0,
+      active: slug === "draft",
+    },
+    {
+      icon: Archive,
+      label: "Archive",
+      path: "/dashboard/archive",
+      count: email.filter((e) => e.tags.length === 2 && e.tags[1] === "archive")
+        .length,
+      active: slug === "archive",
+    }, // Add this route if needed
+    {
+      icon: Trash2,
+      label: "Bin",
+      path: "/dashboard/trash",
+      count: email.filter((e) => e.tags.length === 2 && e.tags[0] === "bin")
+        .length,
+      active: slug === "trash",
+    },
+    {
+      icon: AlertTriangle,
+      label: "Spam",
+      path: "/dashboard/spam",
+      count: email.filter((e) => e.tags.length === 2 && e.tags[0] === "spam")
+        .length,
+      active: slug === "spam",
+    },
+  ];
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64";
 
@@ -267,7 +308,7 @@ const mainNavItems = [
                   </div>
 
                   {/* Count Badge */}
-                  {!isCollapsed  && item.count > 0 && (
+                  {!isCollapsed && item.count > 0 && (
                     <span
                       className={`px-2 py-0.5 text-xs rounded-full ${
                         item.active
@@ -284,7 +325,7 @@ const mainNavItems = [
                   )}
 
                   {/* Collapsed Count Indicator */}
-                  {isCollapsed  && item.count > 0 && (
+                  {isCollapsed && item.count > 0 && (
                     <span
                       className={`absolute -top-1 -right-1 h-5 w-5 text-white text-xs rounded-full flex items-center justify-center shadow-lg ${
                         item.active
@@ -299,51 +340,6 @@ const mainNavItems = [
               ))}
             </nav>
           </div>
-
-          {/* Custom Labels Section */}
-          {/* <div className={`${isCollapsed ? "px-2 pb-4" : "px-4 pb-4"}`}>
-            {!isCollapsed && (
-              <div className="mb-3 flex items-center justify-between">
-                <h3
-                  className={`text-xs font-semibold uppercase tracking-wider ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Labels
-                </h3>
-                <button
-                  className={`p-1 rounded transition-colors ${
-                    isDarkMode ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
-            )}
-
-            <nav className={`space-y-2 ${isCollapsed ? "space-y-3" : ""}`}>
-              {customLabels.map((item) => (
-                <button
-                  key={item.label}
-                  title={isCollapsed ? item.label : undefined}
-                  className={`group flex items-center w-full rounded-lg text-sm transition-all duration-200 ${
-                    isCollapsed ? "h-10 justify-center hover:scale-105" : "gap-3 px-3 py-2"
-                  } ${
-                    isDarkMode
-                      ? "text-gray-300 hover:bg-gray-800 hover:text-white"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`}
-                >
-                  <item.icon
-                    className={`h-4 w-4 ${item.color} ${
-                      isCollapsed ? "group-hover:scale-110" : ""
-                    } transition-transform`}
-                  />
-                  {!isCollapsed && <span>{item.label}</span>}
-                </button>
-              ))}
-            </nav>
-          </div> */}
         </div>
 
         {/* Footer Section */}

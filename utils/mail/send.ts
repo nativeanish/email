@@ -114,12 +114,15 @@ export async function sendEmail(body: string) {
           { name: "sendMail", value: JSON.stringify(arra) },
         ]);
         console.log(rf);
-        load.close()
+        load.close();
       }
     }
   } catch (err) {
-    load.close()
-    showDanger("Failed to send email.", err instanceof Error ? err.message : "Unknown error");
+    load.close();
+    showDanger(
+      "Failed to send email.",
+      err instanceof Error ? err.message : "Unknown error"
+    );
     throw new Error("Failed to send email");
   }
 }
@@ -198,5 +201,68 @@ async function encryptForBoth(
       data: ctB64,
       key: toB64(keyForRecipient),
     }),
+  };
+}
+
+export async function encryptForOne(
+  plaintext: string,
+  recipientPem: string
+): Promise<{
+  iv: string;
+  data: string;
+  key: string;
+}> {
+  const toB64 = (buf: ArrayBuffer | Uint8Array) => {
+    const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+    return btoa(String.fromCharCode(...bytes));
+  };
+
+  const pemToDer = (pem: string): ArrayBuffer => {
+    const b64 = pem
+      .replace(/-----\w+ PUBLIC KEY-----/g, "")
+      .replace(/\s+/g, "");
+    return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
+  };
+
+  const importRsaPublic = async (pem: string) =>
+    crypto.subtle.importKey(
+      "spki",
+      pemToDer(pem),
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      false,
+      ["encrypt", "wrapKey"]
+    );
+
+  const recipientKey = await importRsaPublic(recipientPem);
+
+  const aesKey = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12)); // 96Bit IV
+
+  const encoded = new TextEncoder().encode(plaintext);
+  const ciphertextBuf = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    aesKey,
+    encoded
+  );
+
+  const rawAesKey = await crypto.subtle.exportKey("raw", aesKey);
+
+  const keyForRecipient = await crypto.subtle.encrypt(
+    { name: "RSA-OAEP" },
+    recipientKey,
+    rawAesKey
+  );
+
+  const ivB64 = toB64(iv);
+  const ctB64 = toB64(ciphertextBuf);
+
+  return {
+    iv: ivB64,
+    data: ctB64,
+    key: toB64(keyForRecipient),
   };
 }

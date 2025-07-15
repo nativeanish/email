@@ -69,37 +69,53 @@ function App() {
         dialog.setSize("md");
         dialog.open();
         dialog.setShowCloseButton(false);
-        check_user(address).then((res) => {
-          if (res && res.data && res.status) {
-            const ds = res.data as unknown as User;
-            console.log(ds);
-            dialog.setTitle("Fetching Wallet Keys");
-            dialog.setDescription(
-              "Please wait while we fetch your wallet keys and Allow Wallet to decrypt them."
-            );
-            fetchanddecrypt(ds.privateKey)
-              .then((e) => {
-                if (!e) {
-                  showDanger("Decryption failed", "Please try again later.");
-                  dialog.close();
-                  return;
-                }
-                ds.privateKey = e;
-                setUser(ds);
-                if (ds.updates && ds.updates.length > 0) {
-                  addNotification(ds.updates);
-                }
-                dialog.close();
-              })
-              .catch((err) => {
-                console.error(
-                  "Error fetching and decrypting wallet keys:",
-                  err
-                );
-              });
+        window.arweaveWallet.getActiveAddress().then((e) => {
+          if (
+            e &&
+            address &&
+            user &&
+            user.privateKey.startsWith("-----BEGIN PRIVATE KEY-----") &&
+            e === address &&
+            user.address === address
+          ) {
+            //
           } else {
-            showDanger("User not found", "Please register first.", 6000);
-            navigate("/onboard");
+            check_user(address).then((res) => {
+              if (res && res.data && res.status) {
+                const ds = res.data as unknown as User;
+                console.log(ds);
+                dialog.setTitle("Fetching Wallet Keys");
+                dialog.setDescription(
+                  "Please wait while we fetch your wallet keys and Allow Wallet to decrypt them."
+                );
+                fetchanddecrypt(ds.privateKey)
+                  .then((e) => {
+                    if (!e) {
+                      showDanger(
+                        "Decryption failed",
+                        "Please try again later."
+                      );
+                      dialog.close();
+                      return;
+                    }
+                    ds.privateKey = e;
+                    setUser(ds);
+                    if (ds.updates && ds.updates.length > 0) {
+                      addNotification(ds.updates);
+                    }
+                    dialog.close();
+                  })
+                  .catch((err) => {
+                    console.error(
+                      "Error fetching and decrypting wallet keys:",
+                      err
+                    );
+                  });
+              } else {
+                showDanger("User not found", "Please register first.", 6000);
+                navigate("/onboard");
+              }
+            });
           }
         });
       }

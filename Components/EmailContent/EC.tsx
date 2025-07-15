@@ -6,14 +6,22 @@ import {
   ChevronDown,
   ChevronUp,
   Forward,
+  Mail,
+  Send,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../UI/Modal";
 import { Reply as Rep } from "lucide-react";
 import Reply from "./Reply";
 import ForwardComponent from "./Forward";
-import { mail } from "../../store/useMailStorage";
+import useMailStorage, { mail } from "../../store/useMailStorage";
 import DOMPurify from "dompurify";
+import { useNavigate, useParams } from "react-router-dom";
+import register from "../../utils/aos/core/register";
+import { ReturnResult } from "../NotificationDrawer";
+import useLoginUser from "../../store/useLoginUser";
+import useLoading from "../../store/useLoading";
+import { showDanger } from "../UI/Toast/Toast-Context";
 
 interface Props {
   mail: mail;
@@ -27,6 +35,8 @@ interface Props {
 }
 
 function EC({ mail, User, isDarkMode }: Props) {
+  const { user, setUser } = useLoginUser();
+  const { slug } = useParams();
   const [showModal, setShowModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
@@ -37,6 +47,78 @@ function EC({ mail, User, isDarkMode }: Props) {
   const name = DOMPurify.sanitize(User.name || "Unknown User");
   const address = DOMPurify.sanitize(User.address || "Unknown Address");
   const mainName = name ? name + " | " + address : address;
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const loading = useLoading();
+  const { changeOneMail } = useMailStorage();
+  const changeTag = async (
+    e: "spam" | "archive" | "trash",
+    emailId: string
+  ) => {
+    try {
+      loading.setTitle(`Pushing to ${e}`);
+      loading.setDescription("Allow wallet to push and update the state");
+      loading.open();
+      const response = await register([
+        { name: "Action", value: "Evaluate" },
+        { name: "changeTag", value: e },
+        { name: "emailId", value: emailId },
+      ]);
+      const msg = JSON.parse(response.Messages[0].Data) as ReturnResult;
+      if (msg.status == 1 && msg.data.msg === "Changed the Tag") {
+        if (msg.data.user && user?.privateKey) {
+          msg.data.user.privateKey = user.privateKey;
+          setUser(msg.data.user);
+          changeOneMail(emailId, {
+            tags: [mail.tags[0], e],
+          });
+          loading.close();
+          navigate(`/dashboard/${e}/${id}`);
+        }
+      } else {
+        loading.close();
+        showDanger("Something went wrong while changing tag");
+      }
+    } catch (error) {
+      console.error("Error changing tag:", error);
+      showDanger("Something went wrong while changing tag");
+      loading.close();
+    }
+    loading.close();
+  };
+
+  const undo = async (emaiId: string) => {
+    try {
+      loading.setTitle(`Moving back to ${mail.tags[0]}`);
+      loading.setDescription("Allow wallet to push and update the state");
+      loading.open();
+      // Register the action to undo the tag change
+      const response = await register([
+        { name: "Action", value: "Evaluate" },
+        { name: "undoTag", value: "true" },
+        { name: "emailId", value: emaiId },
+      ]);
+      console.log("Response from undo:", response);
+      const reply = JSON.parse(response.Messages[0].Data) as ReturnResult;
+      if (reply.status === 1 && reply.data.msg === "UnDone the Tag") {
+        changeOneMail(emaiId, { tags: [mail.tags[0]] });
+        setUser(reply.data.user);
+        loading.close();
+        navigate(`/dashboard/${mail.tags[0]}/${id}`);
+      } else {
+        loading.close();
+        showDanger("Something went wrong while moving back mails");
+      }
+    } catch (error) {
+      loading.close();
+      console.error("Error moving back mail:", error);
+      showDanger("Something went wrong while moving back mails");
+    }
+    loading.close();
+  };
+  useEffect(() => {
+    console.log(mail);
+  }, [mail]);
   return (
     <div className="h-full flex flex-col">
       {/* Fixed Header Section */}
@@ -91,33 +173,69 @@ function EC({ mail, User, isDarkMode }: Props) {
           </div>
           <div
             className={`flex items-center justify-end gap-2 ${
-              isDarkMode ? "text-gray-300" : "text-gray-800"
+              isDarkMode ? "text-gray-50" : "text-gray-900"
             }`}
           >
             <button
-              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
+              className="group flex items-center gap-2 p-2 hover:bg-pink-400 rounded-lg transition-all duration-300 overflow-hidden"
               title="Download"
             >
-              <Download className="h-5 w-5" />
+              <Download className="h-5 w-5 flex-shrink-0" />
+              <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
+                Download Email
+              </span>
             </button>
-            <button
-              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
-              title="Archive"
-            >
-              <Archive className="h-5 w-5" />
-            </button>
-            <button
-              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
-              title="Spam"
-            >
-              <OctagonAlert className="h-5 w-5" />
-            </button>
-            <button
-              className="p-2 hover:bg-pink-400 rounded-lg transition-colors"
-              title="Delete"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+            {(slug === "inbox" || slug === "sent") && (
+              <>
+                <button
+                  className="group flex items-center gap-2 p-2 hover:bg-yellow-800 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Archive"
+                  onClick={() => changeTag("archive", mail.id)}
+                >
+                  <Archive className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
+                    Move to Archive
+                  </span>
+                </button>
+                <button
+                  className="group flex items-center gap-2 p-2 hover:bg-orange-800 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Spam"
+                  onClick={() => changeTag("spam", mail.id)}
+                >
+                  <OctagonAlert className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-300 text-sm font-medium">
+                    Move to Spam
+                  </span>
+                </button>
+                <button
+                  className="group flex items-center gap-2 p-2 hover:bg-red-400 rounded-lg transition-all duration-300 overflow-hidden"
+                  title="Delete"
+                  onClick={() => changeTag("trash", mail.id)}
+                >
+                  <Trash2 className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-300 text-sm font-medium">
+                    Move to Trash
+                  </span>
+                </button>
+              </>
+            )}
+            {(slug === "spam" || slug === "trash" || slug === "archive") && (
+              <button
+                className="group flex items-center gap-2 p-2 hover:bg-blue-600 rounded-lg transition-all duration-300 overflow-hidden"
+                title={`Move back to ${mail.tags[0]}`}
+                onClick={() => undo(mail.id)}
+              >
+                {mail.tags[0] === "inbox" && (
+                  <Mail className="h-5 w-5 flex-shrink-0" />
+                )}
+                {mail.tags[0] === "sent" && (
+                  <Send className="h-5 w-5 flex-shrink-0" />
+                )}
+                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-300 text-sm font-medium">
+                  Move back to {mail.tags[0]}
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </div>

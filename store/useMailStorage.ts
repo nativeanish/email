@@ -23,7 +23,8 @@ interface State {
       data: string;
       key: string;
     },
-    id: string
+    id: string,
+    tags: Array<string>
   ) => boolean;
   getMail: (id: string) => mail | null;
   getUser: (
@@ -41,6 +42,7 @@ interface State {
     image: string;
     name: string;
   } | null;
+  changeOneMail: (id: string, data: Partial<mail>) => void;
 }
 const useMailStorage = create<State>((set, get) => ({
   user: [],
@@ -69,20 +71,22 @@ const useMailStorage = create<State>((set, get) => ({
         m.body === mail.body &&
         m.from === mail.from &&
         m.to === mail.to &&
-        m.id === mail.id
+        m.id === mail.id &&
+        m.tags === mail.tags
     );
     if (!mailExists) {
       set({ mail: [..._mail, mail] });
     }
   },
-  ifMailExists(data, id) {
+  ifMailExists(data, id, tags) {
     const _mail = get().mail;
     return _mail.some(
       (m) =>
         m.data.iv === data.iv &&
         m.data.data === data.data &&
         m.data.key === data.key &&
-        m.id === id
+        m.id === id &&
+        tags.every((tag) => m.tags.includes(tag))
     );
   },
   getMail(id) {
@@ -99,6 +103,16 @@ const useMailStorage = create<State>((set, get) => ({
   getUserFrom(address) {
     const _user = get().user;
     return _user.find((u) => u.address === address) || null;
+  },
+  changeOneMail: (id, data) => {
+    const _mail = get().mail;
+    const mailIndex = _mail.findIndex((m) => m.id === id);
+    if (mailIndex !== -1) {
+      const updatedMail = { ..._mail[mailIndex], ...data };
+      const newMailList = [..._mail];
+      newMailList[mailIndex] = updatedMail;
+      set({ mail: newMailList });
+    }
   },
 }));
 export default useMailStorage;

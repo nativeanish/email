@@ -15,13 +15,27 @@ export type Box = {
   to: string;
   received: boolean;
   data: {
-    iv:string,
+    iv: string;
     data: string;
-    key:string;
+    key: string;
   };
   delivered_time: number;
   seen: boolean;
-  tags:string[]
+  tags: string[];
+};
+
+export type Draft = {
+  id: string;
+  to: string;
+  subject: string;
+  bcc: string;
+  cc: string;
+  date: number;
+  content: {
+    iv: string;
+    data: string;
+    key: string;
+  };
 };
 export interface User {
   name: string;
@@ -35,7 +49,7 @@ export interface User {
   isArns: boolean;
   sent: number;
   received: number;
-  mailBox: Array<Box>; 
+  mailBox: Array<Box>;
   updates: Array<UpdateEntry>;
-  draft: Array<Box>;
+  draft: Array<Draft>;
 }

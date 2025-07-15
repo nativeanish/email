@@ -3,7 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Clock } from "lucide-react";
 import useNotification from "../../store/useNotification";
 import useTheme from "../../store/useTheme";
-
+import register from "../../utils/aos/core/register";
+import { User } from "../../types/user";
+import useLoginUser from "../../store/useLoginUser";
+import { showDanger } from "../UI/Toast/Toast-Context";
+import useLoading from "../../store/useLoading";
+export interface ReturnResult {
+  status: 0 | 1;
+  data: { msg: string; user: User };
+}
 export function NotificationDrawer() {
   const {
     notifications,
@@ -13,7 +21,8 @@ export function NotificationDrawer() {
     markAsRead,
   } = useNotification();
   const isDarkMode = useTheme((state) => state.theme === "dark");
-
+  const load = useLoading();
+  const { user, setUser } = useLoginUser();
   /** newest → oldest */
   const sortedNotifications = useMemo(
     // ▼ change is here ── b.date - a.date
@@ -22,6 +31,34 @@ export function NotificationDrawer() {
   );
 
   const unreadCount = sortedNotifications.filter((n) => !n.seen).length;
+
+  const mark_all_reads = async () => {
+    try {
+      load.setTitle("Marking all as read");
+      load.setDescription("Allow wallet to update");
+      load.open();
+      const result = await register([
+        { name: "Action", value: "Evaluate" },
+        { name: "silentoffnotification", value: "true" },
+      ]);
+      const msg = JSON.parse(result.Messages[0].Data) as ReturnResult;
+      if (msg.status === 1 && msg.data.msg === "Updated All Notifications") {
+        if (msg.data.user && user?.privateKey) {
+          msg.data.user.privateKey = user.privateKey;
+          setUser(msg.data.user);
+          markAllAsRead();
+        }
+      } else {
+        load.close();
+        showDanger("Something went wrong on updating state");
+      }
+      load.close();
+    } catch (err) {
+      console.log(err);
+      showDanger("Something went wrong while marking all as read");
+      load.close();
+    }
+  };
 
   const formatDate = (timestamp: number): string => {
     const diffMs = Date.now() - timestamp;
@@ -108,7 +145,7 @@ export function NotificationDrawer() {
                 }`}
               >
                 <button
-                  onClick={markAllAsRead}
+                  onClick={() => mark_all_reads()}
                   className={`flex items-center gap-2 text-sm font-medium transition-colors ${
                     isDarkMode
                       ? "text-blue-400 hover:text-blue-300"
