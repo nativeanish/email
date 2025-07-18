@@ -1,26 +1,21 @@
-import { Box } from "../../types/user";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEmailDetails } from "../../hooks/useEmailDetails";
 import useTheme from "../../store/useTheme";
-import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { Box } from "../../types/user";
 import { formatEmailDate } from "../../utils/dateUtils";
+import { useEffect } from "react";
 import { EmailErrorComponent } from "../UI/EmailErrorComponent";
 
-function EmailDetails({
-  box,
-  selectedEmail = box,
-}: {
-  box: Box;
-  selectedEmail: Box;
-}) {
+function To({ box }: { box: Box }) {
   const { user, loading, hasError, isEmpty, retry, error } =
     useEmailDetails(box);
   const isDarkMode = useTheme((state) => state.theme) === "dark";
+  const { id } = useParams();
   const { slug } = useParams();
   const navigate = useNavigate();
   useEffect(() => {
-    console.log(box);
-  }, [box]);
+    console.log(user);
+  }, [user]);
   if (loading) {
     return (
       <div
@@ -54,7 +49,7 @@ function EmailDetails({
       <button
         onClick={() => navigate(`/dashboard/${slug}/${user.id}`)}
         className={`w-full p-4 text-left ${
-          selectedEmail?.id === user.id
+          id === box.id
             ? isDarkMode
               ? "bg-gray-900 border-b border-gray-800"
               : "bg-gray-200 border-b border-gray-200"
@@ -108,4 +103,4 @@ function EmailDetails({
   );
 }
 
-export default EmailDetails;
+export default To;

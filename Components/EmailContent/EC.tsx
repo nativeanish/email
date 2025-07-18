@@ -8,8 +8,12 @@ import {
   Forward,
   Mail,
   Send,
+  Ban,
+  XCircle,
+  Info,
+  Shield,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Modal from "../UI/Modal";
 import { Reply as Rep } from "lucide-react";
 import Reply from "./Reply";
@@ -21,7 +25,7 @@ import register from "../../utils/aos/core/register";
 import { ReturnResult } from "../NotificationDrawer";
 import useLoginUser from "../../store/useLoginUser";
 import useLoading from "../../store/useLoading";
-import { showDanger } from "../UI/Toast/Toast-Context";
+import { showDanger, showSuccess } from "../UI/Toast/Toast-Context";
 
 interface Props {
   mail: mail;
@@ -32,25 +36,82 @@ interface Props {
     name: string;
   };
   isDarkMode: boolean;
+  setShowEmailContent: (e: null) => void;
 }
 
-function EC({ mail, User, isDarkMode }: Props) {
+function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
   const { user, setUser } = useLoginUser();
   const { slug } = useParams();
   const [showModal, setShowModal] = useState(false);
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
+  const [showInfoPopup, setShowInfoPopup] = useState(false);
+  const infoPopupRef = useRef<HTMLDivElement>(null);
   const subject = DOMPurify.sanitize(mail.subject || "No Subject");
   const body = DOMPurify.sanitize(mail.body || "No Content");
   const time = DOMPurify.sanitize(mail.delivered_time.toString());
-  const image = DOMPurify.sanitize(User.image);
-  const name = DOMPurify.sanitize(User.name || "Unknown User");
+  const image = DOMPurify.sanitize(mail.image);
+  const name = DOMPurify.sanitize(mail.name);
   const address = DOMPurify.sanitize(User.address || "Unknown Address");
   const mainName = name ? name + " | " + address : address;
+  const [archive, showArchive] = useState(false);
+  const [spam, showSpam] = useState(false);
+  const [trash, showTrash] = useState(false);
+  const [inbox, showInbox] = useState(false);
+  const [sent, showSent] = useState(false);
+  const [deletep, showDelete] = useState(true);
   const navigate = useNavigate();
   const { id } = useParams();
   const loading = useLoading();
-  const { changeOneMail } = useMailStorage();
+  const { changeOneMail, deleteMail } = useMailStorage();
+  useEffect(() => {
+    showArchive(false);
+    showSpam(false);
+    showTrash(false);
+    showInbox(false);
+    showSent(false);
+    showDelete(true);
+    if (mail.tags.length === 1 && mail.tags[0] === "inbox") {
+      showArchive(true);
+      showSpam(true);
+      showTrash(true);
+    }
+    if (mail.tags.length === 1 && mail.tags[0] === "sent") {
+      showTrash(true);
+    }
+    if (
+      mail.tags.length === 2 &&
+      mail.tags[0] === "inbox" &&
+      mail.tags[1] === "archive"
+    ) {
+      showInbox(true);
+      showTrash(true);
+    }
+    if (
+      mail.tags.length === 2 &&
+      mail.tags[0] === "inbox" &&
+      mail.tags[1] === "spam"
+    ) {
+      showInbox(true);
+      showTrash(true);
+    }
+    if (
+      mail.tags.length === 2 &&
+      mail.tags[0] === "sent" &&
+      mail.tags[1] === "trash"
+    ) {
+      showSent(true);
+      showTrash(true);
+    }
+    if (
+      mail.tags.length === 2 &&
+      mail.tags[0] === "inbox" &&
+      mail.tags[1] === "trash"
+    ) {
+      showInbox(true);
+      showTrash(true);
+    }
+  }, [mail]);
   const changeTag = async (
     e: "spam" | "archive" | "trash",
     emailId: string
@@ -65,7 +126,7 @@ function EC({ mail, User, isDarkMode }: Props) {
         { name: "emailId", value: emailId },
       ]);
       const msg = JSON.parse(response.Messages[0].Data) as ReturnResult;
-      if (msg.status == 1 && msg.data.msg === "Changed the Tag") {
+      if (msg.status == 1 && msg.data.msg === "Tag changed successfully") {
         if (msg.data.user && user?.privateKey) {
           msg.data.user.privateKey = user.privateKey;
           setUser(msg.data.user);
@@ -73,6 +134,7 @@ function EC({ mail, User, isDarkMode }: Props) {
             tags: [mail.tags[0], e],
           });
           loading.close();
+          showSuccess("Tag changed successfully");
           navigate(`/dashboard/${e}/${id}`);
         }
       } else {
@@ -116,9 +178,66 @@ function EC({ mail, User, isDarkMode }: Props) {
     }
     loading.close();
   };
+
+  const deleteM = async (emailId: string) => {
+    try {
+      loading.setTitle("Deleting Permanently");
+      loading.setDescription("Allow wallet to push and update the state");
+      loading.open();
+      // Register the action to delete the email permanently
+      const response = await register([
+        { name: "Action", value: "Evaluate" },
+        { name: "deletePermanent", value: emailId },
+      ]);
+      console.log("Response from delete:", response);
+      const reply = JSON.parse(response.Messages[0].Data) as ReturnResult;
+      console.log("Reply from delete:", reply);
+      if (
+        reply.status === 1 &&
+        reply.data.msg === `Email deleted successfully` &&
+        user?.privateKey
+      ) {
+        deleteMail(emailId);
+        reply.data.user.privateKey = user.privateKey;
+        setUser(reply.data.user);
+        loading.close();
+        showSuccess("Email deleted successfully");
+        navigate(`/dashboard/${slug}`);
+      } else {
+        loading.close();
+        showDanger("Something went wrong while deleting the email");
+      }
+    } catch (error) {
+      loading.close();
+      console.error("Error deleting email:", error);
+      showDanger("Something went wrong while deleting the email");
+    }
+    loading.close();
+  };
+
   useEffect(() => {
     console.log(mail);
   }, [mail]);
+
+  // Click outside handler for info popup
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        infoPopupRef.current &&
+        !infoPopupRef.current.contains(event.target as Node)
+      ) {
+        setShowInfoPopup(false);
+      }
+    };
+
+    if (showInfoPopup) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showInfoPopup]);
   return (
     <div className="h-full flex flex-col">
       {/* Fixed Header Section */}
@@ -166,8 +285,186 @@ function EC({ mail, User, isDarkMode }: Props) {
                 }`}
               />
               <div>
-                <p>{mainName}</p>
-                <p className="text-sm text-gray-500">{formatEmailDate(time)}</p>
+                <div className="flex items-center gap-2">
+                  <p>{mainName}</p>
+                </div>
+                {/* <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span className="font-medium mr-1">From:</span>
+                    <span
+                      className={
+                        mail.from === `${user?.address}@perma.email`
+                          ? "font-medium text-green-600"
+                          : ""
+                      }
+                    >
+                      {mail.from === `${user?.address}@perma.email`
+                        ? "me"
+                        : mail.name || mail.from}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span className="font-medium mr-1">To:</span>
+                    <span
+                      className={
+                        mail.to === `${user?.address}@perma.email`
+                          ? "font-medium text-blue-600"
+                          : ""
+                      }
+                    >
+                      {mail.to === `${user?.address}@perma.email`
+                        ? "me"
+                        : mail.name || mail.to}
+                    </span>
+                  </div>
+                </div> */}
+                <div className="flex items-center gap-2 mt-1 relative">
+                  <p className="text-sm text-gray-500">
+                    {formatEmailDate(time)}
+                  </p>
+                  <button
+                    onClick={() => setShowInfoPopup(!showInfoPopup)}
+                    className={`p-1 rounded-full hover:bg-gray-200 transition-colors ${
+                      isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
+                    }`}
+                    title="Show email details"
+                  >
+                    <Info className="h-4 w-4 text-gray-500" />
+                  </button>
+
+                  {/* Info Popup */}
+                  {showInfoPopup && (
+                    <div
+                      ref={infoPopupRef}
+                      className={`absolute top-8 left-0 z-50 min-w-80 p-4 rounded-lg shadow-lg border ${
+                        isDarkMode
+                          ? "bg-gray-800 border-gray-600 text-white"
+                          : "bg-white border-gray-200 text-gray-900"
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-sm">
+                            Message Details
+                          </h4>
+                          <button
+                            onClick={() => setShowInfoPopup(false)}
+                            className={`p-1 rounded hover:bg-gray-100 ${
+                              isDarkMode
+                                ? "hover:bg-gray-700"
+                                : "hover:bg-gray-100"
+                            }`}
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              From
+                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              {mail.from === `${user?.username}@perma.email` ? (
+                                <>
+                                  <img
+                                    src={`https://arweave.net/${user?.image}`}
+                                    alt="Profile"
+                                    className="w-6 h-6 rounded-full"
+                                  />
+                                  <div>
+                                    <p className="text-sm font-medium text-green-600">
+                                      {user?.name || user?.username} (me)
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {mail.from}
+                                    </p>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <img
+                                    src={`https://arweave.net/${image}`}
+                                    alt="Profile"
+                                    className="w-6 h-6 rounded-full"
+                                  />
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {name || "Unknown User"}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {mail.from}
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              To
+                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              {mail.to === `${user?.username}@perma.email` ? (
+                                <>
+                                  <img
+                                    src={`https://arweave.net/${user?.image}`}
+                                    alt="Profile"
+                                    className="w-6 h-6 rounded-full"
+                                  />
+                                  <div>
+                                    <p className="text-sm font-medium text-blue-600">
+                                      {user?.name || user?.username} (me)
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {mail.to}
+                                    </p>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <img
+                                    src={`https://arweave.net/${image}`}
+                                    alt="Profile"
+                                    className="w-6 h-6 rounded-full"
+                                  />
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {name || "Unknown User"}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {mail.to}
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              Date
+                            </span>
+                            <p className="text-sm mt-1">
+                              {new Date(Number(time)).toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                            <Shield className="h-4 w-4 text-green-500" />
+                            <div>
+                              <p className="text-sm font-medium">Secure</p>
+                              <p className="text-xs text-gray-500">
+                                This message is encrypted
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -185,11 +482,35 @@ function EC({ mail, User, isDarkMode }: Props) {
                 Download Email
               </span>
             </button>
-            {(slug === "inbox" || slug === "sent") && (
-              <>
+            <>
+              {inbox && (
                 <button
-                  className="group flex items-center gap-2 p-2 hover:bg-yellow-800 rounded-lg transition-all duration-500 overflow-hidden"
-                  title="Archive"
+                  className="group flex items-center gap-2 p-2 hover:bg-blue-600 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Move to Inbox"
+                  onClick={() => undo(mail.id)}
+                >
+                  <Mail className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
+                    Move to Inbox
+                  </span>
+                </button>
+              )}
+              {sent && (
+                <button
+                  className="group flex items-center gap-2 p-2 hover:bg-green-600 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Move to Sent"
+                  onClick={() => undo(mail.id)}
+                >
+                  <Send className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
+                    Move to Sent
+                  </span>
+                </button>
+              )}
+              {archive && (
+                <button
+                  className="group flex items-center gap-2 p-2 hover:bg-yellow-600 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Move to Archive"
                   onClick={() => changeTag("archive", mail.id)}
                 >
                   <Archive className="h-5 w-5 flex-shrink-0" />
@@ -197,45 +518,44 @@ function EC({ mail, User, isDarkMode }: Props) {
                     Move to Archive
                   </span>
                 </button>
+              )}
+              {spam && (
                 <button
-                  className="group flex items-center gap-2 p-2 hover:bg-orange-800 rounded-lg transition-all duration-500 overflow-hidden"
-                  title="Spam"
+                  className="group flex items-center gap-2 p-2 hover:bg-orange-600 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Move to Spam"
                   onClick={() => changeTag("spam", mail.id)}
                 >
                   <OctagonAlert className="h-5 w-5 flex-shrink-0" />
-                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-300 text-sm font-medium">
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
                     Move to Spam
                   </span>
                 </button>
+              )}
+              {trash && (
                 <button
-                  className="group flex items-center gap-2 p-2 hover:bg-red-400 rounded-lg transition-all duration-300 overflow-hidden"
-                  title="Delete"
+                  className="group flex items-center gap-2 p-2 hover:bg-blue-600 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Move to Trash"
                   onClick={() => changeTag("trash", mail.id)}
                 >
                   <Trash2 className="h-5 w-5 flex-shrink-0" />
-                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-300 text-sm font-medium">
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
                     Move to Trash
                   </span>
                 </button>
-              </>
-            )}
-            {(slug === "spam" || slug === "trash" || slug === "archive") && (
-              <button
-                className="group flex items-center gap-2 p-2 hover:bg-blue-600 rounded-lg transition-all duration-300 overflow-hidden"
-                title={`Move back to ${mail.tags[0]}`}
-                onClick={() => undo(mail.id)}
-              >
-                {mail.tags[0] === "inbox" && (
-                  <Mail className="h-5 w-5 flex-shrink-0" />
-                )}
-                {mail.tags[0] === "sent" && (
-                  <Send className="h-5 w-5 flex-shrink-0" />
-                )}
-                <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-300 text-sm font-medium">
-                  Move back to {mail.tags[0]}
-                </span>
-              </button>
-            )}
+              )}
+              {deletep && (
+                <button
+                  className="group flex items-center gap-2 p-2 hover:bg-red-800 rounded-lg transition-all duration-500 overflow-hidden"
+                  title="Delete Permanently"
+                  onClick={() => deleteM(mail.id)}
+                >
+                  <Ban className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-xs transition-all duration-500 text-sm font-medium">
+                    Delete Permanently
+                  </span>
+                </button>
+              )}
+            </>
           </div>
         </div>
       </div>
@@ -252,21 +572,33 @@ function EC({ mail, User, isDarkMode }: Props) {
 
       {/* Fixed Footer Section */}
       <div className="flex-shrink-0 pt-4">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex  justify-between">
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-            onClick={() => setShowModal(true)}
+            className="bg-gray-300 text-gray-900 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-500"
+            onClick={() => {
+              navigate(`/dashboard/${slug}`);
+              setShowEmailContent(null);
+            }}
           >
-            <Rep className="h-5 w-5" />
-            Reply
+            <XCircle className="h-5 w-5" />
+            Close
           </button>
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
-            onClick={() => setShowForwardModal(true)}
-          >
-            <Forward className="h-5 w-5" />
-            Forward
-          </button>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+              onClick={() => setShowModal(true)}
+            >
+              <Rep className="h-5 w-5" />
+              Reply
+            </button>
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+              onClick={() => setShowForwardModal(true)}
+            >
+              <Forward className="h-5 w-5" />
+              Forward
+            </button>
+          </div>
         </div>
       </div>
       <Modal

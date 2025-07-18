@@ -1,7 +1,7 @@
 import { Sidebar } from "../../Components/SideBar";
 import useTheme from "../../store/useTheme";
 import { Header } from "../../Components/Header";
-import { EmailList } from "../../Components/EmailList";
+import { EmailList } from "../../Components/EmailList/EmalList";
 import { EmailContent } from "../../Components/EmailContent";
 import useMessage from "../../store/useMessage";
 import { useEffect, useState } from "react";
@@ -141,7 +141,6 @@ function App() {
           <EmailContent
             isDarkMode={isDarkMode}
             isEmailListVisible={true}
-            selectedEmail={null}
             isNewMessageOpen={show}
             handleBackToList={() => {}}
           />

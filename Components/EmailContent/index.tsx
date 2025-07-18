@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import type { Email } from "../../types/email";
 import NewMessage from "../NewMessage";
 import EC from "./EC";
 import { useEffect, useState } from "react";
@@ -8,7 +7,6 @@ import useMailStorage, { mail } from "../../store/useMailStorage";
 interface EmailContentProps {
   isDarkMode: boolean;
   isEmailListVisible: boolean;
-  selectedEmail: Email | null;
   handleBackToList: () => void;
   isNewMessageOpen: boolean;
 }
@@ -36,7 +34,6 @@ export function EmailContent({
   useEffect(() => {
     if (id && slug) {
       const mail = mailStorage.getMail(id);
-      console.log(mail, slug);
       if (mail && mail.id === id) {
         const user = mailStorage.getUserFrom(mail.from);
         if (user && user.address === mail.from) {
@@ -48,6 +45,7 @@ export function EmailContent({
             (slug === "trash" || slug === "archive" || slug === "spam") &&
             mail.tags.length === 2
           ) {
+            console.log(mail, user);
             setSelectedEmail({ mail, user });
             return;
           } else {
@@ -72,9 +70,6 @@ export function EmailContent({
       }`}
     >
       <div className="h-full p-4 md:p-6">
-        {isNewMessageOpen && selectedEmail === null && (
-          <NewMessage isDarkMode={isDarkMode} />
-        )}
         {selectedEmail === null && isNewMessageOpen === false && (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500 text-lg">Select an Email to Read</p>
@@ -87,11 +82,14 @@ export function EmailContent({
             </p>
           </div>
         )}
+        {isNewMessageOpen && <NewMessage isDarkMode={isDarkMode} />}
         {selectedEmail &&
           selectedEmail !== null &&
           selectedEmail.mail &&
-          selectedEmail.user && (
+          selectedEmail.user &&
+          isNewMessageOpen === false && (
             <EC
+              setShowEmailContent={setSelectedEmail}
               isDarkMode={isDarkMode}
               mail={selectedEmail.mail}
               User={selectedEmail.user}

@@ -22,14 +22,12 @@ export type Box = {
   delivered_time: number;
   seen: boolean;
   tags: string[];
+  name: string;
+  image: string;
 };
 
 export type Draft = {
   id: string;
-  to: string;
-  subject: string;
-  bcc: string;
-  cc: string;
   date: number;
   content: {
     iv: string;

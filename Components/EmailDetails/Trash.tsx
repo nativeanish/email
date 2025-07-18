@@ -2,15 +2,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEmailDetails } from "../../hooks/useEmailDetails";
 import useTheme from "../../store/useTheme";
 import { Box } from "../../types/user";
-import { formatEmailDate } from ".";
-import { useEffect } from "react";
+import { formatEmailDate } from "../../utils/dateUtils";
+import { EmailErrorComponent } from "../UI/EmailErrorComponent";
 
-function From({ box, selectedEmail = box }: { box: Box; selectedEmail: Box }) {
-  const { user, loading, hasError, isEmpty } = useEmailDetails(box);
+function From({ box }: { box: Box }) {
+  const { user, loading, hasError, isEmpty, retry, error } =
+    useEmailDetails(box);
   const isDarkMode = useTheme((state) => state.theme) === "dark";
   const { slug } = useParams();
   const navigate = useNavigate();
-  useEffect(() => {}, [box]);
+  const { id } = useParams();
   if (loading) {
     return (
       <div
@@ -27,15 +28,11 @@ function From({ box, selectedEmail = box }: { box: Box; selectedEmail: Box }) {
 
   if (hasError || isEmpty) {
     return (
-      <div
-        className={`w-full p-6 text-center ${
-          isDarkMode
-            ? "text-red-500 border-b border-white"
-            : "text-red-600 border-b border-white"
-        }`}
-      >
-        Failed to load email details
-      </div>
+      <EmailErrorComponent
+        onRetry={retry}
+        timestamp={box.delivered_time}
+        error={error}
+      />
     );
   }
 
@@ -48,9 +45,9 @@ function From({ box, selectedEmail = box }: { box: Box; selectedEmail: Box }) {
       <button
         onClick={() => navigate(`/dashboard/${slug}/${user.id}`)}
         className={`w-full p-4 text-left ${
-          selectedEmail?.id === user.id
+          id === box.id
             ? isDarkMode
-              ? "bg-gray-900 border-b border-gray-800"
+              ? "bg-gray-800 border-b border-gray-800"
               : "bg-gray-200 border-b border-gray-200"
             : ""
         } ${isDarkMode ? "hover:bg-gray-900" : "hover:bg-gray-50"}`}

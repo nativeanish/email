@@ -1,93 +1,205 @@
 import useLoginUser from "../../store/useLoginUser";
 import useMailStorage from "../../store/useMailStorage";
-import { Box, User } from "../../types/user";
-import dryRun from "../aos/core/dryRun";
+import { Box } from "../../types/user";
+
+// Cache for ongoing fetch operations to prevent duplicate requests
+const fetchingCache = new Map<
+  string,
+  Promise<{
+    id: string;
+    from: string;
+    to: string;
+    subject: string;
+    body: string;
+    image: string;
+    name: string;
+    seen: boolean;
+    date: number;
+  } | null>
+>();
 
 export const fetchstore = async (box: Box) => {
-  const ms = useMailStorage.getState();
-  const key = useLoginUser.getState().user?.privateKey;
-  const parsedEmail = parseEmail(box.from);
+  // Create a unique cache key for this email
+  const cacheKey = `${box.id}-${box.from}-${box.to}`;
+
+  // If we're already fetching this email, return the existing promise
+  if (fetchingCache.has(cacheKey)) {
+    console.log(`Already fetching email ${box.id}, returning cached promise`);
+    return fetchingCache.get(cacheKey);
+  }
+
+  // Create the fetch promise and cache it
+  const fetchPromise = fetchEmailInternal(box);
+  fetchingCache.set(cacheKey, fetchPromise);
+
   try {
-    if (!ms.ifMailExists(box.data, box.id, box.tags) && key) {
-      const data = JSON.parse(
-        await decryptFromSender(key, box.data.data, box.data.iv, box.data.key)
-      ) as { subject: string; body: string; from?: string };
-      console.log("Decrypted data:", data);
-      if (
-        parsedEmail.valid &&
-        parsedEmail.user &&
-        parsedEmail.domain === "perma.email"
-      ) {
-        if (!ms.ifUserExists(parsedEmail.user, box.from)) {
-          const user = JSON.parse(
-            (
-              await dryRun([
-                {
-                  name: "getByEmail",
-                  value: box.from,
-                },
-              ])
-            ).Messages[0].Data
-          ) as { status: 0 | 1; data: User };
-          if (user.status === 1 && user.data) {
-            ms.setUser({
-              username: parsedEmail.user,
-              address: box.from,
-              image: user.data.image,
-              name: user.data.name,
-            });
-            ms.setMail({
-              id: box.id,
-              from: box.from,
-              to: box.to,
-              received: box.received,
-              data: box.data,
-              delivered_time: box.delivered_time,
-              seen: box.seen,
-              tags: box.tags,
-              body: data.body,
-              subject: data.subject,
-            });
-            return {
-              id: box.id,
-              from: box.from,
-              subject: data.subject,
-              body: data.body,
-              image: user.data.image,
-              name: user.data.name,
-              seen: box.seen,
-              date: box.delivered_time,
-            };
-          }
+    const result = await fetchPromise;
+    return result;
+  } finally {
+    // Clean up the cache entry after completion (success or failure)
+    fetchingCache.delete(cacheKey);
+  }
+};
+
+const fetchEmailInternal = async (box: Box) => {
+  const ms = useMailStorage.getState();
+  const loginState = useLoginUser.getState();
+  const key = loginState.user?.privateKey;
+  const box_mail = box.tags[0] === "sent" ? box.to : box.from;
+  const parsedEmail = parseEmail(box_mail);
+
+  try {
+    // Validate prerequisites
+    if (!key) {
+      console.log("No private key available for email:", box.id);
+      throw new Error("Authentication required - no private key available");
+    }
+
+    if (!loginState.user) {
+      console.log("No user logged in for email:", box.id);
+      throw new Error("Authentication required - user not logged in");
+    }
+
+    if (
+      !parsedEmail.valid ||
+      !parsedEmail.user ||
+      parsedEmail.domain !== "perma.email"
+    ) {
+      console.log("Invalid email format for:", box_mail, "Email ID:", box.id);
+      throw new Error(`Invalid email format: ${box_mail}`);
+    }
+
+    // Validate box data
+    if (!box.data || !box.data.data || !box.data.iv || !box.data.key) {
+      console.log("Missing encryption data for email:", box.id);
+      throw new Error(
+        "Email data is corrupted or missing encryption information"
+      );
+    }
+
+    // Check cache first with more detailed logging
+    const emailExists = ms.ifMailExists(box.data, box.id, box.tags);
+    console.log(`Email ${box.id} exists in cache:`, emailExists);
+
+    if (!emailExists) {
+      console.log(`Decrypting email ${box.id}...`);
+
+      let decryptedData;
+      try {
+        const decryptedString = await decryptFromSender(
+          key,
+          box.data.data,
+          box.data.iv,
+          box.data.key
+        );
+        decryptedData = JSON.parse(decryptedString) as {
+          subject: string;
+          body: string;
+          from?: string;
+        };
+
+        // Validate decrypted data
+        if (!decryptedData || typeof decryptedData !== "object") {
+          throw new Error("Decrypted data is not a valid object");
         }
+
+        if (!decryptedData.subject && !decryptedData.body) {
+          throw new Error("Decrypted data missing both subject and body");
+        }
+      } catch (decryptError) {
+        console.error("Decryption failed for email:", box.id, decryptError);
+        throw new Error(
+          `Failed to decrypt email: ${
+            decryptError instanceof Error
+              ? decryptError.message
+              : "Unknown decryption error"
+          }`
+        );
       }
+
+      console.log(`Successfully decrypted email ${box.id}:`, {
+        hasSubject: !!decryptedData.subject,
+        hasBody: !!decryptedData.body,
+        subjectLength: decryptedData.subject?.length || 0,
+      });
+
+      // Store user if not exists
+      if (!ms.ifUserExists(parsedEmail.user, box_mail)) {
+        console.log(`Storing new user: ${parsedEmail.user}`);
+        ms.setUser({
+          username: parsedEmail.user,
+          address: box.from,
+          image: box.image || "",
+          name: box.name || parsedEmail.user,
+        });
+      }
+
+      // Store mail
+      console.log(`Storing email ${box.id} in cache`);
+      ms.setMail({
+        id: box.id,
+        from: box.from,
+        to: box.to,
+        received: box.received,
+        data: box.data,
+        delivered_time: box.delivered_time,
+        seen: box.seen,
+        tags: box.tags,
+        body: decryptedData.body || "",
+        subject: decryptedData.subject || "No Subject",
+        name: box.name || parsedEmail.user,
+        image: box.image || "",
+      });
+
+      return {
+        id: box.id,
+        from: box.from,
+        to: box.to,
+        subject: decryptedData.subject || "No Subject",
+        body: decryptedData.body || "",
+        image: box.image || "",
+        name: box.name || parsedEmail.user,
+        seen: box.seen,
+        date: box.delivered_time,
+      };
     } else {
+      console.log(`Loading email ${box.id} from cache...`);
+
       const mail = ms.getMail(box.id);
-      if (mail) {
-        if (
-          parsedEmail.valid &&
-          parsedEmail.user &&
-          parsedEmail.domain === "perma.email"
-        ) {
-          const user = ms.getUser(parsedEmail.user, box.from);
-          if (user) {
-            return {
-              id: box.id,
-              from: box.from,
-              subject: mail.subject,
-              body: mail.body,
-              image: user.image,
-              name: user.name,
-              seen: box.seen,
-              date: box.delivered_time,
-            };
-          }
-        }
+      if (!mail) {
+        console.log("Mail not found in storage despite cache hit:", box.id);
+        throw new Error(
+          "Email not found in cache despite positive cache check"
+        );
       }
+
+      const user = ms.getUser(parsedEmail.user, box.from);
+      if (!user) {
+        console.log("User not found in storage:", parsedEmail.user, box.from);
+        // Try to create the user if missing
+        ms.setUser({
+          username: parsedEmail.user,
+          address: box.from,
+          image: box.image || "",
+          name: box.name || parsedEmail.user,
+        });
+      }
+
+      return {
+        id: box.id,
+        from: box.from,
+        to: box.to,
+        subject: mail.subject || "No Subject",
+        body: mail.body || "",
+        image: user?.image || box.image || "",
+        name: user?.name || box.name || parsedEmail.user,
+        seen: box.seen,
+        date: box.delivered_time,
+      };
     }
   } catch (err) {
-    console.log("Error in fetchstore:", err);
-    return;
+    console.error("Error in fetchstore for email:", box.id, err);
+    throw err; // Re-throw to be handled by the calling code
   }
 };
 interface ParsedEmail {

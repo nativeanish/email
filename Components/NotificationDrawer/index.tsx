@@ -101,13 +101,13 @@ export function NotificationDrawer() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className={`fixed top-0 right-0 h-full w-full sm:w-96 z-50 shadow-2xl ${
+            className={`fixed top-0 right-0 h-full w-full sm:w-96 z-50 shadow-2xl flex flex-col ${
               isDarkMode ? "bg-[#141414]" : "bg-gray-50"
             }`}
           >
             {/* Header */}
             <div
-              className={`flex items-center justify-between p-4 border-b ${
+              className={`flex items-center justify-between p-4 border-b flex-shrink-0 ${
                 isDarkMode ? "border-gray-700" : "border-gray-200"
               }`}
             >
@@ -140,7 +140,7 @@ export function NotificationDrawer() {
             {/* Mark‑all‑as‑read */}
             {unreadCount > 0 && (
               <div
-                className={`p-4 border-b ${
+                className={`p-4 border-b flex-shrink-0 ${
                   isDarkMode ? "border-gray-700" : "border-gray-200"
                 }`}
               >
@@ -159,7 +159,7 @@ export function NotificationDrawer() {
             )}
 
             {/* Notifications list */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {sortedNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center p-4">
                   <div

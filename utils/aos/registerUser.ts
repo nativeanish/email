@@ -4,7 +4,9 @@ import useOnboard from "../../store/useOnboard";
 import sign from "../wallet/sign";
 import upload from "../wallet/upload";
 import register from "./core/register";
-export default async function registerUser(privateKey: string): Promise<boolean> {
+export default async function registerUser(
+  privateKey: string
+): Promise<boolean> {
   const {
     name,
     image,
@@ -14,18 +16,25 @@ export default async function registerUser(privateKey: string): Promise<boolean>
     bio,
     keys,
     arns,
-    display_name
+    display_name,
   } = useOnboard.getState();
-  if(display_name.length < 1 || display_name.length > 20) {
-    showDanger("Invalid display name", "Display name must be between 1 and 20 characters.", 5000);
-    return false;
-  }
-  if(!privateKey || privateKey.length < 1) {
-    showDanger("Invalid private key", "Private key is required to register.", 5000
+  if (display_name.length < 1 || display_name.length > 20) {
+    showDanger(
+      "Invalid display name",
+      "Display name must be between 1 and 20 characters.",
+      5000
     );
     return false;
   }
-  if(bio && bio.length <= 0) {
+  if (!privateKey || privateKey.length < 1) {
+    showDanger(
+      "Invalid private key",
+      "Private key is required to register.",
+      5000
+    );
+    return false;
+  }
+  if (bio && bio.length <= 0) {
     showDanger("Invalid bio", "Bio must be there.", 5000);
     return false;
   }
@@ -108,16 +117,29 @@ export default async function registerUser(privateKey: string): Promise<boolean>
         { name: "registerAccount", value: JSON.stringify(tag) },
       ];
       const data = await register(tags);
-      console.log(data)
-      if (!data || !data.Messages || !data.Messages[0] || !data.Messages[0].Data) {
-        showDanger("Registration failed", "Malformed response from registration.", 5000);
+      console.log(data);
+      if (
+        !data ||
+        !data.Messages ||
+        !data.Messages[0] ||
+        !data.Messages[0].Data
+      ) {
+        showDanger(
+          "Registration failed",
+          "Malformed response from registration.",
+          5000
+        );
         return false;
       }
       let stats;
       try {
         stats = JSON.parse(data.Messages[0].Data);
-      } catch (e) {
-        showDanger("Registration failed", "Could not parse registration response.", 5000);
+      } catch (_) {
+        showDanger(
+          "Registration failed",
+          "Could not parse registration response.",
+          5000
+        );
         return false;
       }
       console.log("Registration stats:", stats, typeof stats.status);
@@ -132,5 +154,5 @@ export default async function registerUser(privateKey: string): Promise<boolean>
       return false;
     }
   }
-  return false
+  return false;
 }

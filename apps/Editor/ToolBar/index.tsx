@@ -1,4 +1,4 @@
-import { File, Send } from "lucide-react";
+import { File, Send, XCircle } from "lucide-react";
 import Align from "./Component/Align";
 import EmojiPickerButton from "./Component/Emoji";
 import Attachment from "./Component/Attachment";
@@ -19,10 +19,13 @@ import register from "../../../utils/aos/core/register";
 import useLoginUser from "../../../store/useLoginUser";
 import { ReturnResult } from "../../../Components/NotificationDrawer";
 import useNotification from "../../../store/useNotification";
+import useMessage from "../../../store/useMessage";
+import { useNavigate } from "react-router-dom";
 
 function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
   const { editor } = useEditor();
   const load = useLoading();
+  const navigate = useNavigate();
   const send = () => {
     if (!editor) {
       console.error("Editor is not available");
@@ -36,12 +39,15 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
     const html = editor.getEditorState().read(() => {
       return $generateHtmlFromNodes(editor, null);
     });
-    sendEmail(inlineTailwind(html)).then(console.log).catch(console.error);
+    sendEmail(inlineTailwind(html), navigate)
+      .then(console.log)
+      .catch(console.error);
   };
   const __mail = useMail();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addNotification } = useNotification();
   const { user } = useLoginUser();
+  const { setShow } = useMessage();
   const saveDraf = async () => {
     try {
       load.setTitle("Saving Draft");
@@ -52,7 +58,7 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
         load.close();
         return null;
       }
-      if (__mail.subject === "" || __mail.to.length === 0) {
+      if (__mail.subject === "") {
         load.close();
         showDanger("Subject and recipient cannot be empty to save a draft.");
         return null;
@@ -61,29 +67,31 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
         const root = $getRoot();
         return root.getTextContent().trim();
       });
-      if (check.length === 0) {
-        load.close();
-        showDanger("Please add message to save as draft");
-        return;
-      }
       if (user?.privateKey === undefined || user?.privateKey === null) {
         load.close();
         showDanger("Failed to save draft.");
         return;
       }
-      const html = editor.getEditorState().read(() => {
-        return $generateHtmlFromNodes(editor, null);
-      });
-      const __data = await encryptForOne(html, user.publicKey);
+      const __data = await encryptForOne(
+        JSON.stringify({
+          subject: __mail.subject,
+          to: __mail.to.length > 0 ? __mail.to : [""],
+          content:
+            check.length === 0
+              ? ""
+              : inlineTailwind(
+                  editor
+                    .getEditorState()
+                    .read(() => $generateHtmlFromNodes(editor, null))
+                ),
+        }),
+        user.publicKey
+      );
       const msg = await register([
         { name: "Action", value: "Evaluate" },
         {
           name: "writeDraft",
           value: JSON.stringify({
-            subject: __mail.subject,
-            to: __mail.to,
-            cc: __mail.cc.length > 0 ? __mail.cc : undefined,
-            bcc: __mail.bcc.length > 0 ? __mail.bcc : undefined,
             content: {
               data: __data.data,
               iv: __data.iv,
@@ -107,6 +115,12 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
         useLoginUser.getState().setUser(result.data.user);
         addNotification(result.data.user.updates);
         showSuccess("Draft saved successfully");
+        useMessage.getState().setShow(false);
+        editor.update(() => {
+          const root = $getRoot();
+          root.clear();
+        });
+        navigate("/dashboard/draft");
       }
       load.close();
     } catch (err) {
@@ -119,6 +133,13 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
     <div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <button
+            className="bg-gray-300 text-gray-900 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-500"
+            onClick={() => setShow(false)}
+          >
+            <XCircle className="h-5 w-5" />
+            Close
+          </button>
           <Align isDarkMode={isDarkMode} />
           <Attachment isDarkMode={isDarkMode} open={setIsModalOpen} />
           <EmojiPickerButton />

@@ -1,7 +1,13 @@
-import { showDanger } from "../../Components/UI/Toast/Toast-Context";
+import { NavigateFunction } from "react-router-dom";
+import { ReturnResult } from "../../Components/NotificationDrawer";
+import {
+  showDanger,
+  showSuccess,
+} from "../../Components/UI/Toast/Toast-Context";
 import useLoading from "../../store/useLoading";
 import useLoginUser from "../../store/useLoginUser";
 import useMail from "../../store/useMail";
+import useNotification from "../../store/useNotification";
 import dryRun from "../aos/core/dryRun";
 import register from "../aos/core/register";
 type success = {
@@ -21,8 +27,8 @@ type main = {
   status: 0 | 1;
   data: string | success[] | failed[];
 };
-export async function sendEmail(body: string) {
-  const { subject, to, cc, bcc } = useMail.getState();
+export async function sendEmail(body: string, _: NavigateFunction) {
+  const { subject, to } = useMail.getState();
   const load = useLoading.getState();
   try {
     if (to.length === 0) {
@@ -36,7 +42,7 @@ export async function sendEmail(body: string) {
       return false;
     }
     load.setDescription("Validating email addresses...");
-    const email = [...to, ...cc, ...bcc].map(({ email }) => email);
+    const email = [...to].map(({ email }) => email);
     const message = await dryRun([
       {
         name: "getByEmails",
@@ -109,10 +115,27 @@ export async function sendEmail(body: string) {
         }
         console.log("Array to send:", arra);
         load.setDescription("Sending email...");
-        const rf = await register([
-          { name: "Action", value: "Evaluate" },
-          { name: "sendMail", value: JSON.stringify(arra) },
-        ]);
+        const rf = JSON.parse(
+          (
+            await register([
+              { name: "Action", value: "Evaluate" },
+              { name: "sendMail", value: JSON.stringify(arra) },
+            ])
+          ).Messages[0].Data
+        ) as ReturnResult;
+        const usef = useLoginUser.getState().user;
+        if (rf.status === 1 && usef?.privateKey) {
+          rf.data.user.privateKey = usef.privateKey;
+          useLoginUser.getState().setUser(rf.data.user);
+          useNotification.getState().addNotification(rf.data.user.updates);
+          load.close();
+          showSuccess("Email sent successfully!");
+          return true;
+        } else {
+          load.close();
+          showDanger("Failed to send email. Please try again later.");
+          return false;
+        }
         console.log(rf);
         load.close();
       }

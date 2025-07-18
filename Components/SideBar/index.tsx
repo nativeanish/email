@@ -72,22 +72,22 @@ export function Sidebar({
       count: email.filter((e) => e.tags.length === 2 && e.tags[1] === "archive")
         .length,
       active: slug === "archive",
-    }, // Add this route if needed
-    {
-      icon: Trash2,
-      label: "Bin",
-      path: "/dashboard/trash",
-      count: email.filter((e) => e.tags.length === 2 && e.tags[0] === "bin")
-        .length,
-      active: slug === "trash",
     },
     {
       icon: AlertTriangle,
       label: "Spam",
       path: "/dashboard/spam",
-      count: email.filter((e) => e.tags.length === 2 && e.tags[0] === "spam")
+      count: email.filter((e) => e.tags.length === 2 && e.tags[1] === "spam")
         .length,
       active: slug === "spam",
+    },
+    {
+      icon: Trash2,
+      label: "Trash",
+      path: "/dashboard/trash",
+      count: email.filter((e) => e.tags.length === 2 && e.tags[1] === "trash")
+        .length,
+      active: slug === "trash",
     },
   ];
 

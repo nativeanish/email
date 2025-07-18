@@ -43,6 +43,7 @@ interface State {
     name: string;
   } | null;
   changeOneMail: (id: string, data: Partial<mail>) => void;
+  deleteMail: (id: string) => void;
 }
 const useMailStorage = create<State>((set, get) => ({
   user: [],
@@ -113,6 +114,11 @@ const useMailStorage = create<State>((set, get) => ({
       newMailList[mailIndex] = updatedMail;
       set({ mail: newMailList });
     }
+  },
+  deleteMail(id) {
+    const _mail = get().mail;
+    const newMailList = _mail.filter((m) => m.id !== id);
+    set({ mail: newMailList });
   },
 }));
 export default useMailStorage;
