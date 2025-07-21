@@ -11,7 +11,7 @@ import {
   Ban,
   XCircle,
   Info,
-  Shield,
+  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import Modal from "../UI/Modal";
@@ -452,7 +452,7 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
                           </div>
 
                           <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                            <Shield className="h-4 w-4 text-green-500" />
+                            <ShieldCheck className="h-4 w-4 text-green-500" />
                             <div>
                               <p className="text-sm font-medium">Secure</p>
                               <p className="text-xs text-gray-500">

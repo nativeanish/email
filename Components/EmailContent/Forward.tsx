@@ -4,9 +4,9 @@ import Align from "../../apps/Editor/ToolBar/Component/Align";
 import EmojiPickerButton from "../../apps/Editor/ToolBar/Component/Emoji";
 import { Forward as ForwardIcon, XCircle, X } from "lucide-react";
 import useEditor from "../../store/useEditor";
-import { $getRoot, LexicalEditor } from "lexical";
-import { $generateNodesFromDOM } from "@lexical/html";
+import { $getRoot } from "lexical";
 import { reverseInlineTailwind } from "../../utils/inline";
+import convertHtmlToLexicalNodes from "../../utils/convertHtmlToLexicalNodes";
 
 interface Props {
   isDarkMode: boolean;
@@ -345,9 +345,3 @@ function Forward({ isDarkMode, _subject, closeModal, data }: Props) {
 }
 
 export default Forward;
-function convertHtmlToLexicalNodes(html: string, editor: LexicalEditor) {
-  const parser = new DOMParser();
-  const dom = parser.parseFromString(html, "text/html");
-  const nodes = $generateNodesFromDOM(editor, dom);
-  return nodes;
-}

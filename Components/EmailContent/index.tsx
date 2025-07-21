@@ -3,6 +3,7 @@ import NewMessage from "../NewMessage";
 import EC from "./EC";
 import { useEffect, useState } from "react";
 import useMailStorage, { mail } from "../../store/useMailStorage";
+import { DraftContent } from "../DraftContent";
 
 interface EmailContentProps {
   isDarkMode: boolean;
@@ -31,8 +32,15 @@ export function EmailContent({
     | null
     | false
   >(null);
+
   useEffect(() => {
     if (id && slug) {
+      // Handle draft section
+      if (slug === "draft") {
+        setSelectedEmail(null);
+        return;
+      }
+
       const mail = mailStorage.getMail(id);
       if (mail && mail.id === id) {
         const user = mailStorage.getUserFrom(mail.from);
@@ -58,11 +66,13 @@ export function EmailContent({
       return;
     }
   }, [id, slug, mailStorage]);
+
   useEffect(() => {
     if (!slug && id) {
       setSelectedEmail(null);
     }
   }, [slug, id]);
+
   return (
     <div
       className={`${!isEmailListVisible ? "block" : "hidden"} md:block flex-1 ${
@@ -70,6 +80,9 @@ export function EmailContent({
       }`}
     >
       <div className="h-full p-4 md:p-6">
+        {!isNewMessageOpen && slug === "draft" && (
+          <DraftContent isDarkMode={isDarkMode} />
+        )}
         {selectedEmail === null && isNewMessageOpen === false && (
           <div className="flex items-center justify-center h-full">
             <p className="text-gray-500 text-lg">Select an Email to Read</p>

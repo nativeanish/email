@@ -75,7 +75,7 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
       const __data = await encryptForOne(
         JSON.stringify({
           subject: __mail.subject,
-          to: __mail.to.length > 0 ? __mail.to : [""],
+          to: __mail.to.length > 0 ? __mail.to : [],
           content:
             check.length === 0
               ? ""

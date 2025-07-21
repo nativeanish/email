@@ -5,6 +5,7 @@ import { Box } from "../../types/user";
 import { useParams } from "react-router-dom";
 import From from "../EmailDetails/From";
 import To from "../EmailDetails/To";
+import { DraftList } from "../DraftList";
 
 interface EmailListProps {
   isEmailListVisible: boolean;
@@ -16,42 +17,66 @@ export function EmailList({ isEmailListVisible }: EmailListProps) {
   const isDarkMode = theme === "dark";
   const section = useParams().slug;
   const [box, setBox] = useState<Array<Box>>([]);
+
   useEffect(() => {
     console.log("Section:", section);
+
+    // Handle draft section separately
+    if (section === "draft") {
+      setBox([]);
+      return;
+    }
+
     if (section === "inbox") {
       setBox(
-        (emails ?? []).filter((email: Box) => {
-          return email.tags.length === 1 && email.tags[0] === "inbox";
-        })
+        (emails ?? [])
+          .filter((email: Box) => {
+            return email.tags.length === 1 && email.tags[0] === "inbox";
+          })
+          .sort((a, b) => b.delivered_time - a.delivered_time)
       );
     } else if (section === "sent") {
       setBox(
-        (emails ?? []).filter((email: Box) => {
-          return email.tags.length === 1 && email.tags[0] === "sent";
-        })
+        (emails ?? [])
+          .filter((email: Box) => {
+            return email.tags.length === 1 && email.tags[0] === "sent";
+          })
+          .sort((a, b) => b.delivered_time - a.delivered_time)
       );
     } else if (section === "archive") {
       setBox(
-        (emails ?? []).filter((email: Box) => {
-          return email.tags.length === 2 && email.tags[1] === "archive";
-        })
+        (emails ?? [])
+          .filter((email: Box) => {
+            return email.tags.length === 2 && email.tags[1] === "archive";
+          })
+          .sort((a, b) => b.delivered_time - a.delivered_time)
       );
     } else if (section === "spam") {
       setBox(
-        (emails ?? []).filter((email: Box) => {
-          return email.tags.length === 2 && email.tags[1] === "spam";
-        })
+        (emails ?? [])
+          .filter((email: Box) => {
+            return email.tags.length === 2 && email.tags[1] === "spam";
+          })
+          .sort((a, b) => b.delivered_time - a.delivered_time)
       );
     } else if (section === "trash") {
       setBox(
-        (emails ?? []).filter((email: Box) => {
-          return email.tags.length === 2 && email.tags[1] === "trash";
-        })
+        (emails ?? [])
+          .filter((email: Box) => {
+            return email.tags.length === 2 && email.tags[1] === "trash";
+          })
+          .sort((a, b) => b.delivered_time - a.delivered_time)
       );
     } else {
       setBox([]);
     }
   }, [section, emails]);
+
+  // Render DraftList for draft section
+  if (section === "draft") {
+    return <DraftList isEmailListVisible={isEmailListVisible} />;
+  }
+
   return (
     <div
       className={`${

@@ -78,7 +78,7 @@ function App() {
             e === address &&
             user.address === address
           ) {
-            //
+            return;
           } else {
             check_user(address).then((res) => {
               if (res && res.data && res.status) {

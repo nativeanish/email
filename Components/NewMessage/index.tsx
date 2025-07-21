@@ -6,6 +6,10 @@ import Editor from "../../apps/Editor";
 import ToolBar from "../../apps/Editor/ToolBar";
 import useFileStore from "../../store/useFileStore";
 import useMail, { EmailChip } from "../../store/useMail";
+import useEditor from "../../store/useEditor";
+import { reverseInlineTailwind } from "../../utils/inline";
+import { $getRoot } from "lexical";
+import convertHtmlToLexicalNodes from "../../utils/convertHtmlToLexicalNodes";
 
 interface EmailFieldProps {
   label: string;
@@ -82,6 +86,7 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   const {
     setSubject,
     subject,
+    body,
     to: toEmailChips,
     addTo: setToEmailChips,
     removeTo: removeToEmailChip,
@@ -92,12 +97,30 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   const [isToEmailValid, setIsToEmailValid] = useState(true);
 
   const { clearSelectedFiles } = useFileStore();
+  const editor = useEditor((state) => state.editor);
 
   const clearSF = useCallback(() => clearSelectedFiles(), [clearSelectedFiles]);
 
   useEffect(() => {
     clearSF();
   }, [clearSF]);
+
+  // Initialize editor with draft content when body is available
+  useEffect(() => {
+    if (body && editor) {
+      editor.update(() => {
+        const nodes = convertHtmlToLexicalNodes(
+          reverseInlineTailwind(body),
+          editor
+        );
+        const root = $getRoot();
+        root.clear(); // Clear existing content first
+        nodes.forEach((node) => {
+          root.append(node);
+        });
+      });
+    }
+  }, [body, editor]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
