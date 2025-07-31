@@ -39,9 +39,7 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
     const html = editor.getEditorState().read(() => {
       return $generateHtmlFromNodes(editor, null);
     });
-    sendEmail(inlineTailwind(html), navigate)
-      .then(console.log)
-      .catch(console.error);
+    sendEmail(inlineTailwind(html)).then(console.log).catch(console.error);
   };
   const __mail = useMail();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,6 +74,8 @@ function ToolBar({ isDarkMode }: { isDarkMode: boolean }) {
         JSON.stringify({
           subject: __mail.subject,
           to: __mail.to.length > 0 ? __mail.to : [],
+          cc: __mail.cc.length > 0 ? __mail.cc : [],
+          bcc: __mail.bcc.length > 0 ? __mail.bcc : [],
           content:
             check.length === 0
               ? ""

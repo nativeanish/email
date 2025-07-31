@@ -20,6 +20,11 @@ interface EmailFieldProps {
   onEmailInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEmailInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onRemoveEmailChip: (id: string) => void;
+  showButtons?: boolean;
+  onToggleCC?: () => void;
+  onToggleBCC?: () => void;
+  showCCButton?: boolean;
+  showBCCButton?: boolean;
 }
 
 function EmailField({
@@ -31,6 +36,11 @@ function EmailField({
   onEmailInputChange,
   onEmailInputKeyDown,
   onRemoveEmailChip,
+  showButtons = false,
+  onToggleCC,
+  onToggleBCC,
+  showCCButton = false,
+  showBCCButton = false,
 }: EmailFieldProps) {
   return (
     <div
@@ -71,6 +81,35 @@ function EmailField({
             } ${!isEmailValid ? "text-red-500" : ""}`}
           />
         </div>
+
+        {showButtons && (
+          <div className="flex gap-2 ml-4">
+            {showCCButton && (
+              <button
+                onClick={onToggleCC}
+                className={`px-2 py-1 text-sm rounded ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-white hover:bg-gray-800"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                CC
+              </button>
+            )}
+            {showBCCButton && (
+              <button
+                onClick={onToggleBCC}
+                className={`px-2 py-1 text-sm rounded ${
+                  isDarkMode
+                    ? "text-gray-300 hover:text-white hover:bg-gray-800"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                BCC
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {!isEmailValid && (
@@ -86,18 +125,34 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
   const {
     setSubject,
     subject,
-    body,
     to: toEmailChips,
+    cc: ccEmailChips,
+    bcc: bccEmailChips,
     addTo: setToEmailChips,
+    addCc: setCcEmailChips,
+    addBcc: setBccEmailChips,
     removeTo: removeToEmailChip,
+    removeCc: removeCcEmailChip,
+    removeBcc: removeBccEmailChip,
+    body,
+    showCC,
+    setShowBCC,
+    setShowCC,
+    showBCC,
   } = useMail();
 
   // To field state
   const [toEmailInput, setToEmailInput] = useState("");
   const [isToEmailValid, setIsToEmailValid] = useState(true);
+  // CC field state
+  const [ccEmailInput, setCcEmailInput] = useState("");
+  const [isCcEmailValid, setIsCcEmailValid] = useState(true);
 
-  const { clearSelectedFiles } = useFileStore();
+  // BCC field state
+  const [bccEmailInput, setBccEmailInput] = useState("");
+  const [isBccEmailValid, setIsBccEmailValid] = useState(true);
   const editor = useEditor((state) => state.editor);
+  const { clearSelectedFiles } = useFileStore();
 
   const clearSF = useCallback(() => clearSelectedFiles(), [clearSelectedFiles]);
 
@@ -185,7 +240,45 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
     toEmailInput,
     toEmailChips
   );
+  // CC field handlers
+  const ccHandlers = createEmailHandlers(
+    setCcEmailInput,
+    setCcEmailChips,
+    removeCcEmailChip,
+    setIsCcEmailValid,
+    ccEmailInput,
+    ccEmailChips
+  );
 
+  // BCC field handlers
+  const bccHandlers = createEmailHandlers(
+    setBccEmailInput,
+    setBccEmailChips,
+    removeBccEmailChip,
+    setIsBccEmailValid,
+    bccEmailInput,
+    bccEmailChips
+  );
+
+  const toggleCC = () => {
+    setShowCC(!showCC);
+    if (showCC) {
+      setCcEmailInput("");
+      // Clear all CC chips from store
+      ccEmailChips.forEach((chip) => removeCcEmailChip(chip.id));
+      setIsCcEmailValid(true);
+    }
+  };
+
+  const toggleBCC = () => {
+    setShowBCC(!showBCC);
+    if (showBCC) {
+      setBccEmailInput("");
+      // Clear all BCC chips from store
+      bccEmailChips.forEach((chip) => removeBccEmailChip(chip.id));
+      setIsBccEmailValid(true);
+    }
+  };
   return (
     <div className="h-full flex flex-col">
       <h2
@@ -207,7 +300,43 @@ function NewMessage({ isDarkMode }: { isDarkMode: boolean }) {
           onEmailInputChange={toHandlers.handleEmailInputChange}
           onEmailInputKeyDown={toHandlers.handleEmailInputKeyDown}
           onRemoveEmailChip={toHandlers.removeEmailChip}
+          showButtons={true}
+          onToggleCC={toggleCC}
+          onToggleBCC={toggleBCC}
+          showCCButton={!showCC}
+          showBCCButton={!showBCC}
         />
+
+        {/* CC field */}
+        {showCC && (
+          <EmailField
+            label="CC"
+            emailChips={ccEmailChips}
+            emailInput={ccEmailInput}
+            isEmailValid={isCcEmailValid}
+            isDarkMode={isDarkMode}
+            onEmailInputChange={ccHandlers.handleEmailInputChange}
+            onEmailInputKeyDown={ccHandlers.handleEmailInputKeyDown}
+            onRemoveEmailChip={ccHandlers.removeEmailChip}
+            showButtons={true}
+            onToggleBCC={toggleBCC}
+            showBCCButton={!showBCC}
+          />
+        )}
+
+        {/* BCC field */}
+        {showBCC && (
+          <EmailField
+            label="BCC"
+            emailChips={bccEmailChips}
+            emailInput={bccEmailInput}
+            isEmailValid={isBccEmailValid}
+            isDarkMode={isDarkMode}
+            onEmailInputChange={bccHandlers.handleEmailInputChange}
+            onEmailInputKeyDown={bccHandlers.handleEmailInputKeyDown}
+            onRemoveEmailChip={bccHandlers.removeEmailChip}
+          />
+        )}
 
         {/* Subject field */}
         <div

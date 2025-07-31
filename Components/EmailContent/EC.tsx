@@ -238,6 +238,9 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showInfoPopup]);
+  useEffect(() => {
+    console.log(mail.cc, mail.to, mail.bcc);
+  }, [mail]);
   return (
     <div className="h-full flex flex-col">
       {/* Fixed Header Section */}
@@ -288,36 +291,6 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
                 <div className="flex items-center gap-2">
                   <p>{mainName}</p>
                 </div>
-                {/* <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center text-xs text-gray-500">
-                    <span className="font-medium mr-1">From:</span>
-                    <span
-                      className={
-                        mail.from === `${user?.address}@perma.email`
-                          ? "font-medium text-green-600"
-                          : ""
-                      }
-                    >
-                      {mail.from === `${user?.address}@perma.email`
-                        ? "me"
-                        : mail.name || mail.from}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <span className="font-medium mr-1">To:</span>
-                    <span
-                      className={
-                        mail.to === `${user?.address}@perma.email`
-                          ? "font-medium text-blue-600"
-                          : ""
-                      }
-                    >
-                      {mail.to === `${user?.address}@perma.email`
-                        ? "me"
-                        : mail.name || mail.to}
-                    </span>
-                  </div>
-                </div> */}
                 <div className="flex items-center gap-2 mt-1 relative">
                   <p className="text-sm text-gray-500">
                     {formatEmailDate(time)}
@@ -358,8 +331,21 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
                             <XCircle className="h-4 w-4" />
                           </button>
                         </div>
-
+                        {/* Show current category */}
+                        <div className="mb-2">
+                          <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {mail.tags && mail.tags.length > 0
+                              ? mail.tags
+                                  .map(
+                                    (tag) =>
+                                      tag.charAt(0).toUpperCase() + tag.slice(1)
+                                  )
+                                  .join(" / ")
+                              : "Unknown"}
+                          </span>
+                        </div>
                         <div className="space-y-2">
+                          {/* From */}
                           <div className="flex flex-col">
                             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                               From
@@ -400,48 +386,133 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
                               )}
                             </div>
                           </div>
-
+                          {/* To */}
                           <div className="flex flex-col">
                             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                               To
                             </span>
-                            <div className="flex items-center gap-2 mt-1">
-                              {mail.to === `${user?.username}@perma.email` ? (
-                                <>
-                                  <img
-                                    src={`https://arweave.net/${user?.image}`}
-                                    alt="Profile"
-                                    className="w-6 h-6 rounded-full"
-                                  />
-                                  <div>
-                                    <p className="text-sm font-medium text-blue-600">
-                                      {user?.name || user?.username} (me)
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      {mail.to}
-                                    </p>
+                            <div className="flex flex-col gap-1 mt-1">
+                              {Array.isArray(mail.to) && mail.to.length > 0 ? (
+                                mail.to.map((toAddr, idx) => (
+                                  <div
+                                    key={toAddr + idx}
+                                    className="flex items-center gap-2"
+                                  >
+                                    {toAddr ===
+                                    `${user?.username}@perma.email` ? (
+                                      <>
+                                        <img
+                                          src={`https://arweave.net/${user?.image}`}
+                                          alt="Profile"
+                                          className="w-5 h-5 rounded-full"
+                                        />
+                                        <span className="text-sm font-medium text-blue-600">
+                                          {user?.name || user?.username} (me)
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {toAddr}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="text-sm font-medium">
+                                          {toAddr}
+                                        </span>
+                                      </>
+                                    )}
                                   </div>
-                                </>
+                                ))
                               ) : (
-                                <>
-                                  <img
-                                    src={`https://arweave.net/${image}`}
-                                    alt="Profile"
-                                    className="w-6 h-6 rounded-full"
-                                  />
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      {name || "Unknown User"}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      {mail.to}
-                                    </p>
-                                  </div>
-                                </>
+                                <span className="text-xs text-gray-400">
+                                  No recipients
+                                </span>
                               )}
                             </div>
                           </div>
-
+                          {/* CC */}
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              CC
+                            </span>
+                            <div className="flex flex-col gap-1 mt-1">
+                              {Array.isArray(mail.cc) && mail.cc.length > 0 ? (
+                                mail.cc.map((ccAddr, idx) => (
+                                  <div
+                                    key={ccAddr + idx}
+                                    className="flex items-center gap-2"
+                                  >
+                                    {ccAddr ===
+                                    `${user?.username}@perma.email` ? (
+                                      <>
+                                        <img
+                                          src={`https://arweave.net/${user?.image}`}
+                                          alt="Profile"
+                                          className="w-5 h-5 rounded-full"
+                                        />
+                                        <span className="text-sm font-medium text-blue-600">
+                                          {user?.name || user?.username} (me)
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {ccAddr}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="text-sm font-medium">
+                                        {ccAddr}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-400">
+                                  No CC
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {/* BCC */}
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                              BCC
+                            </span>
+                            <div className="flex flex-col gap-1 mt-1">
+                              {Array.isArray(mail.bcc) &&
+                              mail.bcc.length > 0 ? (
+                                mail.bcc.map((bccAddr, idx) => (
+                                  <div
+                                    key={bccAddr + idx}
+                                    className="flex items-center gap-2"
+                                  >
+                                    {bccAddr ===
+                                    `${user?.username}@perma.email` ? (
+                                      <>
+                                        <img
+                                          src={`https://arweave.net/${user?.image}`}
+                                          alt="Profile"
+                                          className="w-5 h-5 rounded-full"
+                                        />
+                                        <span className="text-sm font-medium text-blue-600">
+                                          {user?.name || user?.username} (me)
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {bccAddr}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="text-sm font-medium">
+                                        {bccAddr}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-400">
+                                  No BCC
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {/* Date */}
                           <div className="flex flex-col">
                             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                               Date
@@ -450,7 +521,7 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
                               {new Date(Number(time)).toLocaleString()}
                             </p>
                           </div>
-
+                          {/* Secure */}
                           <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                             <ShieldCheck className="h-4 w-4 text-green-500" />
                             <div>
@@ -615,6 +686,7 @@ function EC({ mail, User, isDarkMode, setShowEmailContent }: Props) {
           isDarkMode={isDarkMode}
           closeModal={() => setShowModal(false)}
           _subject={subject}
+          mail={address}
         />
       </Modal>
 

@@ -10,6 +10,8 @@ export interface DraftDetailsData {
     to: Array<{ email: string; id: string }>;
     subject: string;
     content: string;
+    cc: Array<{ email: string; id: string }> | null;
+    bcc: Array<{ email: string; id: string }> | null;
   };
 }
 
@@ -66,6 +68,8 @@ export function useDraftDetails(draft: Draft | null) {
             to: Array<{ email: string; id: string }>;
             subject: string;
             content: string;
+            cc?: Array<{ email: string; id: string }> | null;
+            bcc?: Array<{ email: string; id: string }> | null;
           };
 
           // Validate decrypted data
@@ -96,6 +100,8 @@ export function useDraftDetails(draft: Draft | null) {
           hasContent: !!decryptedData.content,
           subjectLength: decryptedData.subject?.length || 0,
           recipientCount: decryptedData.to?.length || 0,
+          ccCount: decryptedData.cc?.length || 0,
+          bccCount: decryptedData.bcc?.length || 0,
         });
 
         setDraftData({
@@ -105,6 +111,8 @@ export function useDraftDetails(draft: Draft | null) {
             to: decryptedData.to || [],
             subject: decryptedData.subject || "No Subject",
             content: decryptedData.content || "",
+            cc: decryptedData.cc || null,
+            bcc: decryptedData.bcc || null,
           },
         });
       } catch (error: unknown) {

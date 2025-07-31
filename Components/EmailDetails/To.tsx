@@ -7,8 +7,16 @@ import { useEffect } from "react";
 import { EmailErrorComponent } from "../UI/EmailErrorComponent";
 
 function To({ box }: { box: Box }) {
-  const { user, loading, hasError, isEmpty, retry, error } =
-    useEmailDetails(box);
+  const {
+    user,
+    loading,
+    hasError,
+    isEmpty,
+    retry,
+    error,
+    forceRetry,
+    retryCount,
+  } = useEmailDetails(box);
   const isDarkMode = useTheme((state) => state.theme) === "dark";
   const { id } = useParams();
   const { slug } = useParams();
@@ -34,8 +42,10 @@ function To({ box }: { box: Box }) {
     return (
       <EmailErrorComponent
         onRetry={retry}
+        onForceRetry={forceRetry}
         timestamp={box.delivered_time}
         error={error}
+        retryCount={retryCount}
       />
     );
   }

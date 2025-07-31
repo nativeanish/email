@@ -81,7 +81,11 @@ function DraftItem({ draft }: { draft: Draft }) {
                 {draftData.content.to.length > 0 && (
                   <div className="flex items-center gap-1 text-xs text-gray-500">
                     <Users className="h-3 w-3" />
-                    <span>{draftData.content.to.length}</span>
+                    <span>
+                      {draftData.content.to.length +
+                        (draftData.content.cc?.length ?? 0) +
+                        (draftData.content.bcc?.length ?? 0)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -96,8 +100,13 @@ function DraftItem({ draft }: { draft: Draft }) {
             <div className="mt-1">
               {draftData.content.to.length > 0 && (
                 <p className="text-xs text-gray-500 mb-1">
-                  To:{" "}
-                  {draftData.content.to.map((item) => item.email).join(", ")}
+                  {[
+                    ...(draftData.content.to ?? []),
+                    ...(draftData.content.cc ?? []),
+                    ...(draftData.content.bcc ?? []),
+                  ]
+                    .map((item) => item.email)
+                    .join(", ")}
                 </p>
               )}
               <p

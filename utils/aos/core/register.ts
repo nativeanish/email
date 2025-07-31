@@ -5,7 +5,8 @@ import { useWalletStore } from "../../../store/useWallet";
 import { get_metamask_signer } from "../../wallet/signer";
 import { showDanger } from "../../../Components/UI/Toast/Toast-Context";
 export default async function register(
-  tags: { name: string; value: string }[]
+  tags: { name: string; value: string }[],
+  data: string = ""
 ) {
   const walletType = useWalletStore.getState().connectedWallet;
   let signer: any;
@@ -19,6 +20,7 @@ export default async function register(
     process: process,
     signer: signer,
     tags,
+    data: data.length > 0 ? data : "",
   });
   const res = await result({
     process,

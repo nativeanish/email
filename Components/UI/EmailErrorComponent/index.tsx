@@ -3,18 +3,22 @@ import { formatEmailDate } from "../../../utils/dateUtils";
 
 interface EmailErrorComponentProps {
   onRetry: () => void;
+  onForceRetry?: () => void;
   timestamp: number;
   className?: string;
   errorMessage?: string;
   error?: string | null;
+  retryCount?: number;
 }
 
 export function EmailErrorComponent({
   onRetry,
+  onForceRetry,
   timestamp,
   className = "",
   errorMessage,
   error,
+  retryCount = 0,
 }: EmailErrorComponentProps) {
   const isDarkMode = useTheme((state) => state.theme) === "dark";
 
@@ -113,18 +117,34 @@ export function EmailErrorComponent({
             }`}
           >
             {getErrorMessage()}
+            {retryCount > 0 && ` (Attempt ${retryCount + 1})`}
           </p>
-          <button
-            onClick={onRetry}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              isDarkMode
-                ? "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 focus:ring-offset-gray-800"
-                : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 focus:ring-offset-white"
-            }`}
-            aria-label="Retry loading email"
-          >
-            Try Again
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={onRetry}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                isDarkMode
+                  ? "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 focus:ring-offset-gray-800"
+                  : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 focus:ring-offset-white"
+              }`}
+              aria-label="Retry loading email"
+            >
+              Try Again
+            </button>
+            {onForceRetry && retryCount >= 1 && (
+              <button
+                onClick={onForceRetry}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  isDarkMode
+                    ? "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 focus:ring-offset-gray-800"
+                    : "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 focus:ring-offset-white"
+                }`}
+                aria-label="Force refresh email"
+              >
+                Force Refresh
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

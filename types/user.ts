@@ -12,7 +12,9 @@ export interface UpdateList {
 export type Box = {
   id: string;
   from: string;
-  to: string;
+  to: Array<string>;
+  cc: Array<string>;
+  bcc: Array<string>;
   received: boolean;
   data: {
     iv: string;
@@ -24,6 +26,7 @@ export type Box = {
   tags: string[];
   name: string;
   image: string;
+  error: boolean;
 };
 
 export type Draft = {

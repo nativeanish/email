@@ -5,8 +5,12 @@ import EmojiPickerButton from "../../apps/Editor/ToolBar/Component/Emoji";
 import { Forward as ForwardIcon, XCircle, X } from "lucide-react";
 import useEditor from "../../store/useEditor";
 import { $getRoot } from "lexical";
-import { reverseInlineTailwind } from "../../utils/inline";
+import { inlineTailwind, reverseInlineTailwind } from "../../utils/inline";
 import convertHtmlToLexicalNodes from "../../utils/convertHtmlToLexicalNodes";
+import useMailStorage from "../../store/useMailStorage";
+import { $generateHtmlFromNodes } from "@lexical/html";
+import replyAndForward from "../../utils/mail/replyandforward";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   isDarkMode: boolean;
@@ -14,40 +18,42 @@ interface Props {
   closeModal: () => void;
   data: { data: string; type: "text/html" | "text/plain" };
 }
-const emails: string[] = [
-  "alice@example.com",
-  "bob@example.org",
-  "charlie@example.net",
-  "dave@domain.com",
-  "eve@securemail.com",
-  "frank@testmail.org",
-  "grace@webmail.net",
-  "heidi@company.com",
-  "ivan@corporate.org",
-  "judy@network.net",
-  "karen@service.com",
-  "leo@support.org",
-  "mallory@info.net",
-  "nancy@system.com",
-  "oscar@admin.org",
-  "peggy@office.net",
-  "quinn@host.com",
-  "ruth@api.org",
-  "sybil@data.net",
-  "trent@domain.org",
-];
 function Forward({ isDarkMode, _subject, closeModal, data }: Props) {
   const [subject, setSubject] = useState("Fwd: " + _subject);
   const [emailInput, setEmailInput] = useState("");
   const [emailList, setEmailList] = useState<string[]>([]);
   const [emailError, setEmailError] = useState("");
-  const [emaillist] = useState(emails);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const inputRef = useRef<HTMLDivElement>(null);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const editor = useEditor((state) => state.editor);
+  const users = useMailStorage((state) => state.user);
+  const [emaillist, setEmails] = useState<string[]>([]);
+  const navigate = useNavigate();
+  useEffect(() => {
+    setEmails(users.map((user) => user.username));
+  }, [users]);
+  const forward = async () => {
+    console.log("Forwarding email to:", emailList);
+    if (!editor) return;
+    const html = editor.getEditorState().read(() => {
+      return $generateHtmlFromNodes(editor, null);
+    });
+    closeModal();
+    const rep = await replyAndForward(
+      emailList,
+      subject,
+      inlineTailwind(html),
+      "forward"
+    );
+    if (rep === true || rep === false) {
+      if (rep === true) {
+        navigate("/dashboard/sent");
+      }
+    }
+  };
   useEffect(() => {
     if (data.type === "text/plain") {
       data.data = `<p>${data.data}</p>`;
@@ -322,6 +328,7 @@ function Forward({ isDarkMode, _subject, closeModal, data }: Props) {
                 emailList.length === 0 ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={emailList.length === 0}
+              onClick={() => forward()}
             >
               <ForwardIcon className="h-5 w-5" />
               <span className="text-sm font-medium">Forward</span>

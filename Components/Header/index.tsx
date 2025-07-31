@@ -12,16 +12,54 @@ import { useWalletStore } from "../../store/useWallet";
 import useNotification from "../../store/useNotification";
 import { NotificationDrawer } from "../NotificationDrawer";
 import { useParams } from "react-router-dom";
+import useBell from "../../store/useBell";
+import useLoading from "../../store/useLoading";
+import { showDanger, showSuccess } from "../UI/Toast/Toast-Context";
+import dryRun from "../../utils/aos/core/dryRun";
+import { User } from "../../types/user";
+import useLoginUser from "../../store/useLoginUser";
 export function Header() {
   const isDarkMode = useTheme((state) => state.theme === "dark");
   const toggleTheme = useTheme((state) => state.setTheme);
   const setSidebar = useSideBar((state) => state.change);
   const isSidebarOpen = useSideBar((state) => state.isOpen);
   const { disconnectWallet } = useWalletStore();
-  const { notifications, setDrawerOpen } = useNotification();
+  const { notifications, setDrawerOpen, addNotification } = useNotification();
   const unreadCount = notifications.filter((n) => !n.seen).length;
   const section = useParams().slug;
-
+  const { status, clear } = useBell();
+  const loading = useLoading();
+  const { user, setUser } = useLoginUser();
+  const update = async () => {
+    loading.setTitle("Updating State");
+    loading.setDescription("Please wait while we update the state.");
+    loading.open();
+    const addresss = await window.arweaveWallet.getActiveAddress();
+    if (!addresss) {
+      showDanger("Please connect your wallet first.");
+      loading.close();
+      return;
+    }
+    const result = JSON.parse(
+      (await dryRun([{ name: "getByAddress", value: addresss }])).Messages[0]
+        .Data
+    ) as {
+      status: 0 | 1;
+      data: User;
+    };
+    if (result.status === 0) {
+      showDanger("Failed to update state. Please try again later.");
+      loading.close();
+      return;
+    }
+    if (result.status === 1 && result.data && user?.privateKey) {
+      result.data.privateKey = user.privateKey;
+      addNotification(result.data.updates);
+      setUser(result.data);
+      showSuccess("State updated successfully.");
+    }
+    loading.close();
+  };
   return (
     <div>
       <header
@@ -86,7 +124,9 @@ export function Header() {
             </button>
             <button
               onClick={() => {
-                setSidebar(!isSidebarOpen);
+                update().then(() => {
+                  clear();
+                });
               }}
               className={`p-2 rounded-lg ${
                 isDarkMode
@@ -96,6 +136,11 @@ export function Header() {
               title="Refresh"
             >
               <RefreshCcw className="h-5 w-5" />
+              {status > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {status > 9 ? "9+" : status}
+                </span>
+              )}
             </button>
             <button
               onClick={() => disconnectWallet()}

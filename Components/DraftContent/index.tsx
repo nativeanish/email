@@ -90,6 +90,7 @@ export function DraftContent({ isDarkMode }: DraftContentProps) {
       </div>
     );
   }
+
   const handleEdit = () => {
     if (!editor) {
       showDanger("Editor is not initialized");
@@ -103,15 +104,35 @@ export function DraftContent({ isDarkMode }: DraftContentProps) {
           ? recipient
           : { email: recipient.email, id: recipient.id }
     ) as EmailChip[];
+    if (draftData.content.cc && draftData.content.cc.length > 0) {
+      const ccEmails = draftData.content.cc?.map((recipient: RecipientType) =>
+        typeof recipient === "string"
+          ? recipient
+          : { email: recipient.email, id: recipient.id }
+      ) as EmailChip[];
+
+      ccEmails?.map((email) =>
+        mail.addCc({ email: email.email, id: email.id })
+      );
+      mail.setShowCC(true);
+    }
+    if (draftData.content.bcc && draftData.content.bcc.length > 0) {
+      const bccEmails = draftData.content.bcc?.map((recipient: RecipientType) =>
+        typeof recipient === "string"
+          ? recipient
+          : { email: recipient.email, id: recipient.id }
+      ) as EmailChip[];
+      bccEmails?.map((email) =>
+        mail.addBcc({ email: email.email, id: email.id })
+      );
+      mail.setShowBCC(true);
+    }
     recipientEmails.map((email) =>
       mail.addTo({ email: email.email, id: email.id })
     );
+
     mail.setSubject(draftData.content.subject || "");
-
-    // Store the draft content in the mail store body field
-    // This will persist across navigation and component remounts
     mail.setBody(draftData.content.content || "");
-
     navigate("/dashboard/draft");
     setShow(true);
   };
@@ -209,25 +230,36 @@ export function DraftContent({ isDarkMode }: DraftContentProps) {
             <div className="flex items-center gap-2 mb-2">
               <Users className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-600">
-                Recipients ({draftData.content.to.length})
+                Recipients (
+                {draftData.content.to.length +
+                  (draftData.content.cc && draftData.content.cc.length
+                    ? draftData.content.cc.length
+                    : 0) +
+                  (draftData.content.bcc && draftData.content.bcc.length
+                    ? draftData.content.bcc.length
+                    : 0)}
+                )
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {draftData.content.to.length > 0 &&
-                draftData.content.to.map((recipient, index) => (
-                  <span
-                    key={index}
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      isDarkMode
-                        ? "bg-gray-700 text-gray-200"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {typeof recipient === "string"
-                      ? recipient
-                      : (recipient as RecipientType & { email: string }).email}
-                  </span>
-                ))}
+              {[
+                ...(draftData.content.to ?? []),
+                ...(draftData.content.cc ?? []),
+                ...(draftData.content.bcc ?? []),
+              ].map((recipient, index) => (
+                <span
+                  key={index}
+                  className={`px-2 py-1 text-xs rounded-full ${
+                    isDarkMode
+                      ? "bg-gray-700 text-gray-200"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {typeof recipient === "string"
+                    ? recipient
+                    : (recipient as RecipientType & { email: string }).email}
+                </span>
+              ))}
             </div>
           </div>
         )}

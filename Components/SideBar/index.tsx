@@ -15,6 +15,7 @@ import WalletModal from "../WalletModal";
 import useMessage from "../../store/useMessage";
 import { useNavigate, useParams } from "react-router-dom";
 import useLoginUser from "../../store/useLoginUser";
+import useMail from "../../store/useMail";
 
 export function Sidebar({
   name,
@@ -33,6 +34,7 @@ export function Sidebar({
   const isCollapsed = isSidebarOpen ? true : false;
   const [showWalletModal, setShowWalletModal] = useState(false);
   const { show, setShow } = useMessage();
+  const { clearFields } = useMail();
   const email = useLoginUser((state) => state.user?.mailBox) || [];
   const { user } = useLoginUser();
   const setIsSidebarOpen = (open: boolean) => {
@@ -168,6 +170,7 @@ export function Sidebar({
                     }`}
                     title="New Mail"
                     onClick={() => {
+                      clearFields();
                       setShow(!show);
                     }}
                   >
@@ -183,6 +186,7 @@ export function Sidebar({
                   }`}
                   title="New Mail"
                   onClick={() => {
+                    clearFields();
                     setShow(!show);
                   }}
                 >

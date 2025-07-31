@@ -3,14 +3,39 @@ import Editor from "../../apps/Editor";
 import Align from "../../apps/Editor/ToolBar/Component/Align";
 import EmojiPickerButton from "../../apps/Editor/ToolBar/Component/Emoji";
 import { Reply as Rep, XCircle } from "lucide-react";
+import useEditor from "../../store/useEditor";
+import { $generateHtmlFromNodes } from "@lexical/html";
+import { inlineTailwind } from "../../utils/inline";
+import replyAndForward from "../../utils/mail/replyandforward";
+import { useNavigate } from "react-router-dom";
 interface Props {
   isDarkMode: boolean;
   _subject: string;
   closeModal: () => void;
+  mail: string;
 }
-function Reply({ isDarkMode, _subject, closeModal }: Props) {
+function Reply({ isDarkMode, _subject, closeModal, mail }: Props) {
   const [subject, setSubject] = useState("Re: " + _subject);
-
+  const { editor } = useEditor();
+  const navigate = useNavigate();
+  const reply = async () => {
+    if (!editor) return;
+    const html = editor.getEditorState().read(() => {
+      return $generateHtmlFromNodes(editor, null);
+    });
+    closeModal();
+    const rep = await replyAndForward(
+      [mail],
+      subject,
+      inlineTailwind(html),
+      "reply"
+    );
+    if (rep === true || rep === false) {
+      if (rep === true) {
+        navigate("/dashboard/sent");
+      }
+    }
+  };
   return (
     <div>
       <div className="flex flex-col">
@@ -62,6 +87,7 @@ function Reply({ isDarkMode, _subject, closeModal }: Props) {
                   ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
                   : "bg-white hover:bg-gray-50 text-black border border-gray-200"
               }`}
+              onClick={() => reply()}
             >
               <Rep className="h-5 w-5" />
               <span className="text-sm font-medium">Send Reply</span>
